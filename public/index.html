@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NightMind AI</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --red:#ef233c;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  font-family:'Inter',sans-serif;
+  background:#000;
+  color:#fff;
+  height:100vh;
+  overflow:hidden;
+}
+
+.manrope{
+  font-family:'Manrope',sans-serif;
+}
+
+@keyframes fadeUp{
+  from{
+    opacity:0;
+    transform:translateY(10px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+@keyframes blink{
+  0%,100%{opacity:1}
+  50%{opacity:0}
+}
+
+@keyframes pulseDot{
+  0%,100%{
+    opacity:1;
+    transform:scale(1);
+  }
+  50%{
+    opacity:.4;
+    transform:scale(.85);
+  }
+}
+
+.sidebar{
+  width:255px;
+  min-width:255px;
+  background:#060606;
+  border-right:1px solid rgba(255,255,255,0.05);
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+}
+
+.chat-zone{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  background:#000;
+  position:relative;
+  height:100vh;
+}
+
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:14px 24px;
+  border-bottom:1px solid rgba(255,255,255,0.05);
+  background:rgba(0,0,0,0.55);
+  backdrop-filter:blur(10px);
+}
+
+#messages{
+  flex:1;
+  overflow-y:auto;
+  padding:28px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.msg-user{
+  align-self:flex-end;
+  max-width:68%;
+  background:rgba(239,35,60,0.10);
+  border:1px solid rgba(239,35,60,0.22);
+  border-radius:18px 18px 5px 18px;
+  padding:12px 18px;
+  font-size:14px;
+  line-height:1.65;
+  animation:fadeUp .3s ease;
+}
+
+.msg-ai{
+  align-self:flex-start;
+  max-width:78%;
+  background:rgba(255,255,255,0.035);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:5px 18px 18px 18px;
+  padding:14px 18px;
+  font-size:14px;
+  line-height:1.7;
+  color:#d1d1d1;
+  white-space:pre-wrap;
+  animation:fadeUp .3s ease;
+}
+
+.typing-wrap{
+  display:flex;
+  gap:5px;
+  padding:14px 18px;
+  border-radius:5px 18px 18px 18px;
+  background:rgba(255,255,255,0.035);
+  border:1px solid rgba(255,255,255,0.07);
+}
+
+.typing-dot{
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:var(--red);
+  animation:pulseDot 1.2s infinite;
+}
+
+.typing-dot:nth-child(2){
+  animation-delay:.2s;
+}
+
+.typing-dot:nth-child(3){
+  animation-delay:.4s;
+}
+
+.input-zone{
+  padding:16px 24px;
+  border-top:1px solid rgba(255,255,255,0.05);
+  background:rgba(0,0,0,0.55);
+  backdrop-filter:blur(10px);
+}
+
+.input-wrap{
+  position:relative;
+  max-width:760px;
+  margin:0 auto;
+}
+
+.chat-input{
+  width:100%;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:50px;
+  padding:14px 54px 14px 22px;
+  color:#fff;
+  font-size:14px;
+  outline:none;
+}
+
+.chat-input:focus{
+  border-color:rgba(239,35,60,0.4);
+}
+
+.send-btn{
+  position:absolute;
+  right:7px;
+  top:50%;
+  transform:translateY(-50%);
+  width:38px;
+  height:38px;
+  border:none;
+  border-radius:50%;
+  background:var(--red);
+  color:#fff;
+  cursor:pointer;
+}
+
+.send-btn:hover{
+  background:#c4162e;
+}
+
+.new-btn{
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  background:rgba(239,35,60,0.1);
+  color:#ef233c;
+  cursor:pointer;
+  font-weight:700;
+}
+
+.hist-item{
+  padding:8px 12px;
+  border-radius:8px;
+  color:#666;
+  font-size:12px;
+  cursor:pointer;
+}
+
+.hist-item.active{
+  background:rgba(239,35,60,0.1);
+  color:#ef233c;
+}
+
+.cursor-blink{
+  display:inline-block;
+  width:2px;
+  height:14px;
+  background:#ef233c;
+  animation:blink .8s infinite;
+}
+
+#welcome{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  flex:1;
+  text-align:center;
+}
+
+.live-dot{
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#ef233c;
+  animation:pulseDot 2s infinite;
+}
+</style>
+</head>
+
+<body>
+
+<div style="display:flex;height:100vh;">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <div style="padding:18px;border-bottom:1px solid rgba(255,255,255,0.05);">
+
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <div style="width:10px;height:10px;background:#ef233c;transform:rotate(45deg);border-radius:2px;"></div>
+
+        <span class="manrope" style="font-weight:800;">
+          NightMind
+        </span>
+
+        <span style="margin-left:auto;font-size:10px;background:rgba(239,35,60,0.12);padding:2px 7px;border-radius:10px;color:#ef233c;">
+          AI
+        </span>
+      </div>
+
+      <button class="new-btn" onclick="newChat()">
+        + New Conversation
+      </button>
+
+    </div>
+
+    <div style="padding:14px;font-size:11px;color:#444;">
+      CONVERSATIONS
+    </div>
+
+    <div id="history" style="flex:1;padding:0 8px;display:flex;flex-direction:column;gap:2px;">
+      <div class="hist-item active">Welcome — get started</div>
+    </div>
+
+    <div style="padding:14px;border-top:1px solid rgba(255,255,255,0.05);">
+
+      <div style="margin-bottom:12px;">
+
+        <select id="modelSelect"
+style="background:#111;border:1px solid rgba(255,255,255,0.08);padding:7px 10px;border-radius:10px;color:#aaa;font-size:12px;width:100%;">
+
+<option value="llama-3.3-70b-versatile">Llama 3.3 70B</option>
+
+<option value="llama-3.1-8b-instant">Llama 3.1 8B</option>
+
+<option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
+
+</select>
+
+      </div>
+
+      <div style="display:flex;align-items:center;gap:10px;">
+
+        <div style="width:30px;height:30px;border-radius:50%;background:rgba(239,35,60,0.1);display:flex;align-items:center;justify-content:center;color:#ef233c;font-weight:700;">
+          U
+        </div>
+
+        <div>
+          <div style="font-size:13px;">
+            You
+          </div>
+
+          <div style="font-size:11px;color:#444;">
+            Free Plan
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- CHAT -->
+  <div class="chat-zone">
+
+    <div class="topbar">
+
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="live-dot"></div>
+
+        <span style="font-size:12px;color:#555;">
+          ONLINE
+        </span>
+      </div>
+
+      <button onclick="clearMessages()"
+        style="background:none;border:1px solid rgba(255,255,255,0.08);padding:6px 14px;border-radius:8px;color:#666;cursor:pointer;">
+        Clear
+      </button>
+
+    </div>
+
+    <!-- MESSAGES -->
+    <div id="messages">
+
+      <div id="welcome">
+
+        <div style="width:60px;height:60px;background:rgba(239,35,60,0.1);border-radius:18px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
+          <div style="width:22px;height:22px;background:#ef233c;transform:rotate(45deg);border-radius:4px;"></div>
+        </div>
+
+        <h1 class="manrope" style="font-size:30px;font-weight:800;margin-bottom:10px;">
+          What's on your mind?
+        </h1>
+
+        <p style="color:#555;max-width:380px;line-height:1.7;">
+          NightMind powered by Groq AI.
+        </p>
+
+      </div>
+
+    </div>
+
+    <!-- INPUT -->
+    <div class="input-zone">
+
+      <div class="input-wrap">
+
+        <input
+          id="chat-input"
+          class="chat-input"
+          type="text"
+          placeholder="Message NightMind..."
+          onkeydown="if(event.key==='Enter'){sendMessage()}"
+        >
+
+        <button class="send-btn" onclick="sendMessage()">
+          ➜
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+// ======================================
+// GROQ API
+// ======================================
+
+const GROQ_KEY = '...';
+
+// ======================================
+// CHAT HISTORY
+// ======================================
+
+let currentChatId = null;
+
+let chats =
+  JSON.parse(localStorage.getItem('nightmind_chats')) || {};
+
+function saveChats(){
+
+  localStorage.setItem(
+    'nightmind_chats',
+    JSON.stringify(chats)
+  );
+}
+
+function renderHistory(){
+
+  const history =
+    document.getElementById('history');
+
+  history.innerHTML = '';
+
+  Object.keys(chats)
+    .reverse()
+    .forEach(chatId => {
+
+      const chat = chats[chatId];
+
+      const item =
+        document.createElement('div');
+
+      item.className =
+        'hist-item ' +
+        (chatId === currentChatId
+          ? 'active'
+          : '');
+
+      item.textContent = chat.title;
+
+      item.onclick = () => {
+        loadChat(chatId);
+      };
+
+      history.appendChild(item);
+
+    });
+}
+
+function loadChat(chatId){
+
+  currentChatId = chatId;
+
+  renderHistory();
+
+  const messages =
+    document.getElementById('messages');
+
+  messages.innerHTML = '';
+
+  chats[chatId].messages.forEach(msg => {
+
+    const div =
+      document.createElement('div');
+
+    div.className =
+      msg.role === 'user'
+      ? 'msg-user'
+      : 'msg-ai';
+
+    div.textContent = msg.content;
+
+    messages.appendChild(div);
+
+  });
+
+  messages.scrollTop =
+    messages.scrollHeight;
+}
+
+function createChat(firstMessage='New Chat'){
+
+  currentChatId =
+    'chat_' + Date.now();
+
+  chats[currentChatId] = {
+
+    title:
+      firstMessage.length > 30
+      ? firstMessage.substring(0,30) + '...'
+      : firstMessage,
+
+    messages:[]
+  };
+
+  saveChats();
+
+  renderHistory();
+}
+
+function saveMessage(role, content){
+
+  if(!currentChatId){
+
+    createChat(content);
+  }
+
+  chats[currentChatId].messages.push({
+    role,
+    content
+  });
+
+  saveChats();
+}
+
+// ======================================
+// NEW CHAT
+// ======================================
+
+function clearMessages(){
+
+  const msgs =
+    document.getElementById('messages');
+
+  msgs.innerHTML = `
+    <div id="welcome"
+      style="
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        flex:1;
+        text-align:center;
+      ">
+
+      <div style="
+        width:60px;
+        height:60px;
+        background:rgba(239,35,60,0.1);
+        border-radius:18px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        margin-bottom:20px;
+      ">
+        <div style="
+          width:22px;
+          height:22px;
+          background:#ef233c;
+          transform:rotate(45deg);
+          border-radius:4px;
+        "></div>
+      </div>
+
+      <h1 class="manrope"
+        style="
+          font-size:30px;
+          font-weight:800;
+          margin-bottom:10px;
+        ">
+        New Conversation
+      </h1>
+
+      <p style="color:#555;">
+        Ask anything.
+      </p>
+
+    </div>
+  `;
+}
+
+function newChat(){
+
+  currentChatId = null;
+
+  clearMessages();
+
+  renderHistory();
+}
+
+// ======================================
+// AI CHAT
+// ======================================
+
+let isBusy = false;
+
+async function sendMessage(){
+
+  if(isBusy) return;
+
+  const input =
+    document.getElementById('chat-input');
+
+  const text =
+    input.value.trim();
+
+  if(!text) return;
+
+  input.value = '';
+
+  const messages =
+    document.getElementById('messages');
+
+  const welcome =
+    document.getElementById('welcome');
+
+  if(welcome) welcome.remove();
+
+  // ======================================
+  // USER MESSAGE
+  // ======================================
+
+  const userDiv =
+    document.createElement('div');
+
+  userDiv.className = 'msg-user';
+
+  userDiv.textContent = text;
+
+  messages.appendChild(userDiv);
+
+  messages.scrollTop =
+    messages.scrollHeight;
+
+  saveMessage('user', text);
+
+  // ======================================
+  // TYPING
+  // ======================================
+
+  const typing =
+    document.createElement('div');
+
+  typing.className = 'typing-wrap';
+
+  typing.innerHTML = `
+    <div class="typing-dot"></div>
+    <div class="typing-dot"></div>
+    <div class="typing-dot"></div>
+  `;
+
+  messages.appendChild(typing);
+
+  messages.scrollTop =
+    messages.scrollHeight;
+
+  isBusy = true;
+
+  try{
+
+    const model =
+      document.getElementById(
+        'modelSelect'
+      ).value;
+
+    const response =
+      await fetch(
+        '/chat',
+        {
+
+          method:'POST',
+
+          headers:{
+            'Content-Type':'application/json',
+            'Authorization':
+              'Bearer ' + GROQ_KEY
+          },
+
+          body:JSON.stringify({
+
+            model:model,
+
+            messages:[
+              {
+                role:'system',
+                content:
+                  'You are NightMind, a futuristic AI assistant.'
+              },
+
+              {
+                role:'user',
+                content:text
+              }
+            ],
+
+            temperature:0.7,
+
+            max_tokens:1000
+          })
+        }
+      );
+
+    const data =
+      await response.json();
+
+    typing.remove();
+
+    let reply = '';
+
+    if(
+      data.choices &&
+      data.choices[0] &&
+      data.choices[0].message
+    ){
+
+      reply =
+        data.choices[0]
+        .message
+        .content;
+
+    }else{
+
+      reply =
+        '⚠ ' +
+        JSON.stringify(data);
+    }
+
+    // ======================================
+    // AI MESSAGE
+    // ======================================
+
+    const aiDiv =
+      document.createElement('div');
+
+    aiDiv.className = 'msg-ai';
+
+    messages.appendChild(aiDiv);
+
+    const cursor =
+      document.createElement('span');
+
+    cursor.className =
+      'cursor-blink';
+
+    aiDiv.appendChild(cursor);
+
+    let i = 0;
+
+    function type(){
+
+      if(i < reply.length){
+
+        aiDiv.insertBefore(
+          document.createTextNode(
+            reply[i]
+          ),
+          cursor
+        );
+
+        i++;
+
+        messages.scrollTop =
+          messages.scrollHeight;
+
+        setTimeout(type,8);
+
+      }else{
+
+        cursor.remove();
+
+        saveMessage(
+          'assistant',
+          reply
+        );
+
+        isBusy = false;
+      }
+    }
+
+    type();
+
+  }
+  catch(err){
+
+    typing.remove();
+
+    const errDiv =
+      document.createElement('div');
+
+    errDiv.className =
+      'msg-ai';
+
+    errDiv.textContent =
+      '⚠ Error: ' + err.message;
+
+    messages.appendChild(errDiv);
+
+    isBusy = false;
+  }
+}
+
+// ======================================
+// LOAD CHATS ON START
+// ======================================
+
+setTimeout(() => {
+
+  const ids =
+    Object.keys(chats);
+
+  if(ids.length > 0){
+
+    currentChatId =
+      ids[ids.length - 1];
+
+    renderHistory();
+
+    loadChat(currentChatId);
+
+  }else{
+
+    renderHistory();
+  }
+
+},100);
+
+</script>
+</body>
+</html>
