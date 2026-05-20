@@ -7,7 +7,6 @@ import { fileURLToPath } from "url";
 dotenv.config();
 
 const app = express();
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -29,26 +28,22 @@ app.post("/chat", async (req, res) => {
       "https://api.groq.com/openai/v1/chat/completions",
       {
         method: "POST",
-        headers:{
-  'Content-Type':'application/json'
-},
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.GROQ_API_KEY}`
+        },
         body: JSON.stringify(req.body),
       }
     );
-
     const data = await response.json();
     res.json(data);
-
   } catch (err) {
-    res.status(500).json({
-      error: err.message,
-    });
+    res.status(500).json({ error: err.message });
   }
 });
 
-// IMPORTANT: use Render/Railway PORT
+// Port
 const port = process.env.PORT || 8080;
-
 app.listen(port, () => {
   console.log(`NightMind running on port ${port}`);
 });
