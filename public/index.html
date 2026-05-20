@@ -388,426 +388,188 @@ style="background:#111;border:1px solid rgba(255,255,255,0.08);padding:7px 10px;
 <script>
 
 // ======================================
-// GROQ API
-// ======================================
-
-
-// ======================================
 // CHAT HISTORY
 // ======================================
 
 let currentChatId = null;
-
-let chats =
-  JSON.parse(localStorage.getItem('nightmind_chats')) || {};
+let chats = JSON.parse(localStorage.getItem('nightmind_chats')) || {};
 
 function saveChats(){
-
-  localStorage.setItem(
-    'nightmind_chats',
-    JSON.stringify(chats)
-  );
+  localStorage.setItem('nightmind_chats', JSON.stringify(chats));
 }
 
 function renderHistory(){
-
-  const history =
-    document.getElementById('history');
-
+  const history = document.getElementById('history');
   history.innerHTML = '';
-
-  Object.keys(chats)
-    .reverse()
-    .forEach(chatId => {
-
-      const chat = chats[chatId];
-
-      const item =
-        document.createElement('div');
-
-      item.className =
-        'hist-item ' +
-        (chatId === currentChatId
-          ? 'active'
-          : '');
-
-      item.textContent = chat.title;
-
-      item.onclick = () => {
-        loadChat(chatId);
-      };
-
-      history.appendChild(item);
-
-    });
+  Object.keys(chats).reverse().forEach(chatId => {
+    const chat = chats[chatId];
+    const item = document.createElement('div');
+    item.className = 'hist-item ' + (chatId === currentChatId ? 'active' : '');
+    item.textContent = chat.title;
+    item.onclick = () => { loadChat(chatId); };
+    history.appendChild(item);
+  });
 }
 
 function loadChat(chatId){
-
   currentChatId = chatId;
-
   renderHistory();
-
-  const messages =
-    document.getElementById('messages');
-
+  const messages = document.getElementById('messages');
   messages.innerHTML = '';
-
   chats[chatId].messages.forEach(msg => {
-
-    const div =
-      document.createElement('div');
-
-    div.className =
-      msg.role === 'user'
-      ? 'msg-user'
-      : 'msg-ai';
-
+    const div = document.createElement('div');
+    div.className = msg.role === 'user' ? 'msg-user' : 'msg-ai';
     div.textContent = msg.content;
-
     messages.appendChild(div);
-
   });
-
-  messages.scrollTop =
-    messages.scrollHeight;
+  messages.scrollTop = messages.scrollHeight;
 }
 
 function createChat(firstMessage='New Chat'){
-
-  currentChatId =
-    'chat_' + Date.now();
-
+  currentChatId = 'chat_' + Date.now();
   chats[currentChatId] = {
-
-    title:
-      firstMessage.length > 30
-      ? firstMessage.substring(0,30) + '...'
-      : firstMessage,
-
-    messages:[]
+    title: firstMessage.length > 30 ? firstMessage.substring(0,30) + '...' : firstMessage,
+    messages: []
   };
-
   saveChats();
-
   renderHistory();
 }
 
 function saveMessage(role, content){
-
-  if(!currentChatId){
-
-    createChat(content);
-  }
-
-  chats[currentChatId].messages.push({
-    role,
-    content
-  });
-
+  if(!currentChatId){ createChat(content); }
+  chats[currentChatId].messages.push({ role, content });
   saveChats();
 }
 
 // ======================================
-// NEW CHAT
+// NEW CHAT / CLEAR
 // ======================================
 
 function clearMessages(){
-
-  const msgs =
-    document.getElementById('messages');
-
+  const msgs = document.getElementById('messages');
   msgs.innerHTML = `
-    <div id="welcome"
-      style="
-        display:flex;
-        flex-direction:column;
-        align-items:center;
-        justify-content:center;
-        flex:1;
-        text-align:center;
-      ">
-
-      <div style="
-        width:60px;
-        height:60px;
-        background:rgba(239,35,60,0.1);
-        border-radius:18px;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        margin-bottom:20px;
-      ">
-        <div style="
-          width:22px;
-          height:22px;
-          background:#ef233c;
-          transform:rotate(45deg);
-          border-radius:4px;
-        "></div>
+    <div id="welcome" style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;text-align:center;">
+      <div style="width:60px;height:60px;background:rgba(239,35,60,0.1);border-radius:18px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
+        <div style="width:22px;height:22px;background:#ef233c;transform:rotate(45deg);border-radius:4px;"></div>
       </div>
-
-      <h1 class="manrope"
-        style="
-          font-size:30px;
-          font-weight:800;
-          margin-bottom:10px;
-        ">
-        New Conversation
-      </h1>
-
-      <p style="color:#555;">
-        Ask anything.
-      </p>
-
-    </div>
-  `;
+      <h1 class="manrope" style="font-size:30px;font-weight:800;margin-bottom:10px;">New Conversation</h1>
+      <p style="color:#555;">Ask anything.</p>
+    </div>`;
 }
 
 function newChat(){
-
   currentChatId = null;
-
   clearMessages();
-
   renderHistory();
 }
 
 // ======================================
-// AI CHAT
+// SEND MESSAGE — calls /chat backend
 // ======================================
 
 let isBusy = false;
 
 async function sendMessage(){
-
   if(isBusy) return;
 
-  const input =
-    document.getElementById('chat-input');
-
-  const text =
-    input.value.trim();
-
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
   if(!text) return;
-
   input.value = '';
 
-  const messages =
-    document.getElementById('messages');
-
-  const welcome =
-    document.getElementById('welcome');
-
+  const messages = document.getElementById('messages');
+  const welcome = document.getElementById('welcome');
   if(welcome) welcome.remove();
 
-  // ======================================
-  // USER MESSAGE
-  // ======================================
-
-  const userDiv =
-    document.createElement('div');
-
+  // User bubble
+  const userDiv = document.createElement('div');
   userDiv.className = 'msg-user';
-
   userDiv.textContent = text;
-
   messages.appendChild(userDiv);
-
-  messages.scrollTop =
-    messages.scrollHeight;
-
+  messages.scrollTop = messages.scrollHeight;
   saveMessage('user', text);
 
-  // ======================================
-  // TYPING
-  // ======================================
-
-  const typing =
-    document.createElement('div');
-
+  // Typing indicator
+  const typing = document.createElement('div');
   typing.className = 'typing-wrap';
-
-  typing.innerHTML = `
-    <div class="typing-dot"></div>
-    <div class="typing-dot"></div>
-    <div class="typing-dot"></div>
-  `;
-
+  typing.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
   messages.appendChild(typing);
-
-  messages.scrollTop =
-    messages.scrollHeight;
-
+  messages.scrollTop = messages.scrollHeight;
   isBusy = true;
 
   try{
+    const model = document.getElementById('modelSelect').value;
 
-    const model =
-      document.getElementById(
-        'modelSelect'
-      ).value;
+    // ✅ Calls YOUR backend — no API key in frontend
+    const response = await fetch('/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          { role: 'system', content: 'You are NightMind, a futuristic AI assistant.' },
+          { role: 'user', content: text }
+        ],
+        temperature: 0.7,
+        max_tokens: 1000
+      })
+    });
 
-    const response =
-      await fetch(
-        '/chat',
-        {
-
-          method:'POST',
-
-          headers:{
-            'Content-Type':'application/json',
-            'Authorization':
-              'Bearer ' + GROQ_KEY
-          },
-
-          body:JSON.stringify({
-
-            model:model,
-
-            messages:[
-              {
-                role:'system',
-                content:
-                  'You are NightMind, a futuristic AI assistant.'
-              },
-
-              {
-                role:'user',
-                content:text
-              }
-            ],
-
-            temperature:0.7,
-
-            max_tokens:1000
-          })
-        }
-      );
-
-    const data =
-      await response.json();
-
+    const data = await response.json();
     typing.remove();
 
     let reply = '';
-
-    if(
-      data.choices &&
-      data.choices[0] &&
-      data.choices[0].message
-    ){
-
-      reply =
-        data.choices[0]
-        .message
-        .content;
-
-    }else{
-
-      reply =
-        '⚠ ' +
-        JSON.stringify(data);
+    if(data.choices && data.choices[0] && data.choices[0].message){
+      reply = data.choices[0].message.content;
+    } else {
+      reply = '⚠ Unexpected response: ' + JSON.stringify(data).slice(0, 200);
     }
 
-    // ======================================
-    // AI MESSAGE
-    // ======================================
-
-    const aiDiv =
-      document.createElement('div');
-
+    // AI bubble with typewriter
+    const aiDiv = document.createElement('div');
     aiDiv.className = 'msg-ai';
-
     messages.appendChild(aiDiv);
 
-    const cursor =
-      document.createElement('span');
-
-    cursor.className =
-      'cursor-blink';
-
+    const cursor = document.createElement('span');
+    cursor.className = 'cursor-blink';
     aiDiv.appendChild(cursor);
 
     let i = 0;
-
     function type(){
-
       if(i < reply.length){
-
-        aiDiv.insertBefore(
-          document.createTextNode(
-            reply[i]
-          ),
-          cursor
-        );
-
+        aiDiv.insertBefore(document.createTextNode(reply[i]), cursor);
         i++;
-
-        messages.scrollTop =
-          messages.scrollHeight;
-
-        setTimeout(type,8);
-
-      }else{
-
+        messages.scrollTop = messages.scrollHeight;
+        setTimeout(type, 8);
+      } else {
         cursor.remove();
-
-        saveMessage(
-          'assistant',
-          reply
-        );
-
+        saveMessage('assistant', reply);
         isBusy = false;
       }
     }
-
     type();
 
-  }
-  catch(err){
-
+  } catch(err){
     typing.remove();
-
-    const errDiv =
-      document.createElement('div');
-
-    errDiv.className =
-      'msg-ai';
-
-    errDiv.textContent =
-      '⚠ Error: ' + err.message;
-
+    const errDiv = document.createElement('div');
+    errDiv.className = 'msg-ai';
+    errDiv.textContent = '⚠ Error: ' + err.message;
     messages.appendChild(errDiv);
-
     isBusy = false;
   }
 }
 
-// ======================================
-// LOAD CHATS ON START
-// ======================================
-
+// Load saved chats on start
 setTimeout(() => {
-
-  const ids =
-    Object.keys(chats);
-
+  const ids = Object.keys(chats);
   if(ids.length > 0){
-
-    currentChatId =
-      ids[ids.length - 1];
-
+    currentChatId = ids[ids.length - 1];
     renderHistory();
-
     loadChat(currentChatId);
-
-  }else{
-
+  } else {
     renderHistory();
   }
-
-},100);
+}, 100);
 
 </script>
 </body>
