@@ -4,367 +4,417 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NightMind AI</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-
 <style>
-:root{
-  --red:#ef233c;
+:root {
+  --red: #ef233c;
+  --bg: #000000;
+  --bg-sidebar: #060606;
+  --bg-topbar: rgba(0,0,0,0.55);
+  --bg-input-zone: rgba(0,0,0,0.55);
+  --bg-msg-ai: rgba(255,255,255,0.035);
+  --bg-input: rgba(255,255,255,0.04);
+  --bg-new-btn: rgba(239,35,60,0.1);
+  --border: rgba(255,255,255,0.05);
+  --border-msg-ai: rgba(255,255,255,0.07);
+  --border-input: rgba(255,255,255,0.1);
+  --text: #ffffff;
+  --text-ai: #d1d1d1;
+  --text-muted: #555555;
+  --text-hist: #666666;
+  --text-input: #ffffff;
+  --placeholder: #444444;
+  --select-bg: #111111;
+  --select-border: rgba(255,255,255,0.08);
+  --select-color: #aaaaaa;
+  --hist-hover: rgba(255,255,255,0.05);
+  --scrollbar: rgba(255,255,255,0.08);
 }
 
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
+body.light {
+  --bg: #f0f2f5;
+  --bg-sidebar: #ffffff;
+  --bg-topbar: rgba(255,255,255,0.85);
+  --bg-input-zone: rgba(255,255,255,0.85);
+  --bg-msg-ai: rgba(0,0,0,0.04);
+  --bg-input: rgba(0,0,0,0.05);
+  --bg-new-btn: rgba(239,35,60,0.08);
+  --border: rgba(0,0,0,0.08);
+  --border-msg-ai: rgba(0,0,0,0.08);
+  --border-input: rgba(0,0,0,0.12);
+  --text: #111111;
+  --text-ai: #333333;
+  --text-muted: #888888;
+  --text-hist: #777777;
+  --text-input: #111111;
+  --placeholder: #aaaaaa;
+  --select-bg: #f5f5f5;
+  --select-border: rgba(0,0,0,0.1);
+  --select-color: #555555;
+  --hist-hover: rgba(0,0,0,0.05);
+  --scrollbar: rgba(0,0,0,0.1);
 }
 
-body{
-  font-family:'Inter',sans-serif;
-  background:#000;
-  color:#fff;
-  height:100vh;
-  overflow:hidden;
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  transition: background 0.3s, color 0.3s;
 }
 
-.manrope{
-  font-family:'Manrope',sans-serif;
+.manrope { font-family: 'Manrope', sans-serif; }
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(10px); }
+  to { opacity:1; transform:translateY(0); }
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+@keyframes pulseDot {
+  0%,100%{ opacity:1; transform:scale(1); }
+  50%{ opacity:.4; transform:scale(.85); }
 }
 
-@keyframes fadeUp{
-  from{
-    opacity:0;
-    transform:translateY(10px);
-  }
-  to{
-    opacity:1;
-    transform:translateY(0);
-  }
+/* ---- TOGGLE SWITCH ---- */
+.toggle-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.toggle-track {
+  width: 42px;
+  height: 24px;
+  border-radius: 50px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  position: relative;
+  transition: background 0.3s, border-color 0.3s;
+}
+body.light .toggle-track {
+  background: rgba(0,0,0,0.1);
+  border-color: rgba(0,0,0,0.15);
+}
+.toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #666;
+  transition: transform 0.3s, background 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+}
+body.light .toggle-thumb {
+  transform: translateX(18px);
+  background: var(--red);
+}
+.toggle-icon {
+  font-size: 12px;
+  color: var(--text-muted);
+  transition: color 0.3s;
 }
 
-@keyframes blink{
-  0%,100%{opacity:1}
-  50%{opacity:0}
+/* ---- SIDEBAR ---- */
+.sidebar {
+  width: 255px;
+  min-width: 255px;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  transition: background 0.3s, border-color 0.3s;
 }
 
-@keyframes pulseDot{
-  0%,100%{
-    opacity:1;
-    transform:scale(1);
-  }
-  50%{
-    opacity:.4;
-    transform:scale(.85);
-  }
+/* ---- CHAT ZONE ---- */
+.chat-zone {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  position: relative;
+  height: 100vh;
+  transition: background 0.3s;
 }
 
-.sidebar{
-  width:255px;
-  min-width:255px;
-  background:#060606;
-  border-right:1px solid rgba(255,255,255,0.05);
-  display:flex;
-  flex-direction:column;
-  height:100vh;
+/* ---- TOP BAR ---- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-topbar);
+  backdrop-filter: blur(10px);
+  transition: background 0.3s, border-color 0.3s;
 }
 
-.chat-zone{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  background:#000;
-  position:relative;
-  height:100vh;
+/* ---- MESSAGES ---- */
+#messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+#messages::-webkit-scrollbar { width: 3px; }
+#messages::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 4px; }
+
+.msg-user {
+  align-self: flex-end;
+  max-width: 68%;
+  background: rgba(239,35,60,0.10);
+  border: 1px solid rgba(239,35,60,0.22);
+  border-radius: 18px 18px 5px 18px;
+  padding: 12px 18px;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text);
+  animation: fadeUp .3s ease;
+  transition: color 0.3s;
 }
 
-.topbar{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:14px 24px;
-  border-bottom:1px solid rgba(255,255,255,0.05);
-  background:rgba(0,0,0,0.55);
-  backdrop-filter:blur(10px);
+.msg-ai {
+  align-self: flex-start;
+  max-width: 78%;
+  background: var(--bg-msg-ai);
+  border: 1px solid var(--border-msg-ai);
+  border-radius: 5px 18px 18px 18px;
+  padding: 14px 18px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-ai);
+  white-space: pre-wrap;
+  animation: fadeUp .3s ease;
+  transition: background 0.3s, border-color 0.3s, color 0.3s;
 }
 
-#messages{
-  flex:1;
-  overflow-y:auto;
-  padding:28px;
-  display:flex;
-  flex-direction:column;
-  gap:14px;
+.typing-wrap {
+  display: flex;
+  gap: 5px;
+  padding: 14px 18px;
+  border-radius: 5px 18px 18px 18px;
+  background: var(--bg-msg-ai);
+  border: 1px solid var(--border-msg-ai);
+  align-self: flex-start;
+  width: fit-content;
 }
 
-.msg-user{
-  align-self:flex-end;
-  max-width:68%;
-  background:rgba(239,35,60,0.10);
-  border:1px solid rgba(239,35,60,0.22);
-  border-radius:18px 18px 5px 18px;
-  padding:12px 18px;
-  font-size:14px;
-  line-height:1.65;
-  animation:fadeUp .3s ease;
+.typing-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--red);
+  animation: pulseDot 1.2s infinite;
+}
+.typing-dot:nth-child(2){ animation-delay:.2s; }
+.typing-dot:nth-child(3){ animation-delay:.4s; }
+
+/* ---- INPUT ---- */
+.input-zone {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-input-zone);
+  backdrop-filter: blur(10px);
+  transition: background 0.3s, border-color 0.3s;
 }
 
-.msg-ai{
-  align-self:flex-start;
-  max-width:78%;
-  background:rgba(255,255,255,0.035);
-  border:1px solid rgba(255,255,255,0.07);
-  border-radius:5px 18px 18px 18px;
-  padding:14px 18px;
-  font-size:14px;
-  line-height:1.7;
-  color:#d1d1d1;
-  white-space:pre-wrap;
-  animation:fadeUp .3s ease;
+.input-wrap { position: relative; max-width: 760px; margin: 0 auto; }
+
+.chat-input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-input);
+  border-radius: 50px;
+  padding: 14px 54px 14px 22px;
+  color: var(--text-input);
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  transition: border-color 0.2s, background 0.3s, color 0.3s;
+}
+.chat-input:focus { border-color: rgba(239,35,60,0.4); }
+.chat-input::placeholder { color: var(--placeholder); }
+
+.send-btn {
+  position: absolute;
+  right: 7px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 50%;
+  background: var(--red);
+  color: #fff;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s;
+}
+.send-btn:hover { background: #c4162e; }
+
+/* ---- SIDEBAR ELEMENTS ---- */
+.new-btn {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid rgba(239,35,60,0.25);
+  border-radius: 10px;
+  background: var(--bg-new-btn);
+  color: var(--red);
+  cursor: pointer;
+  font-weight: 700;
+  font-family: 'Manrope', sans-serif;
+  transition: background 0.2s;
+}
+.new-btn:hover { background: rgba(239,35,60,0.18); }
+
+.hist-item {
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: var(--text-hist);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background 0.15s, color 0.15s;
+}
+.hist-item:hover { background: var(--hist-hover); color: var(--text-muted); }
+.hist-item.active { background: rgba(239,35,60,0.1); color: var(--red); }
+
+.cursor-blink {
+  display: inline-block;
+  width: 2px;
+  height: 14px;
+  background: var(--red);
+  animation: blink .8s infinite;
+  vertical-align: middle;
+  margin-left: 2px;
 }
 
-.typing-wrap{
-  display:flex;
-  gap:5px;
-  padding:14px 18px;
-  border-radius:5px 18px 18px 18px;
-  background:rgba(255,255,255,0.035);
-  border:1px solid rgba(255,255,255,0.07);
+#welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  text-align: center;
 }
 
-.typing-dot{
-  width:7px;
-  height:7px;
-  border-radius:50%;
-  background:var(--red);
-  animation:pulseDot 1.2s infinite;
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--red);
+  animation: pulseDot 2s infinite;
 }
 
-.typing-dot:nth-child(2){
-  animation-delay:.2s;
+.clear-btn {
+  background: none;
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  border-radius: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  transition: border-color 0.2s, color 0.2s;
 }
+.clear-btn:hover { border-color: rgba(239,35,60,0.4); color: var(--red); }
 
-.typing-dot:nth-child(3){
-  animation-delay:.4s;
-}
-
-.input-zone{
-  padding:16px 24px;
-  border-top:1px solid rgba(255,255,255,0.05);
-  background:rgba(0,0,0,0.55);
-  backdrop-filter:blur(10px);
-}
-
-.input-wrap{
-  position:relative;
-  max-width:760px;
-  margin:0 auto;
-}
-
-.chat-input{
-  width:100%;
-  background:rgba(255,255,255,0.04);
-  border:1px solid rgba(255,255,255,0.1);
-  border-radius:50px;
-  padding:14px 54px 14px 22px;
-  color:#fff;
-  font-size:14px;
-  outline:none;
-}
-
-.chat-input:focus{
-  border-color:rgba(239,35,60,0.4);
-}
-
-.send-btn{
-  position:absolute;
-  right:7px;
-  top:50%;
-  transform:translateY(-50%);
-  width:38px;
-  height:38px;
-  border:none;
-  border-radius:50%;
-  background:var(--red);
-  color:#fff;
-  cursor:pointer;
-}
-
-.send-btn:hover{
-  background:#c4162e;
-}
-
-.new-btn{
-  width:100%;
-  padding:10px;
-  border:none;
-  border-radius:10px;
-  background:rgba(239,35,60,0.1);
-  color:#ef233c;
-  cursor:pointer;
-  font-weight:700;
-}
-
-.hist-item{
-  padding:8px 12px;
-  border-radius:8px;
-  color:#666;
-  font-size:12px;
-  cursor:pointer;
-}
-
-.hist-item.active{
-  background:rgba(239,35,60,0.1);
-  color:#ef233c;
-}
-
-.cursor-blink{
-  display:inline-block;
-  width:2px;
-  height:14px;
-  background:#ef233c;
-  animation:blink .8s infinite;
-}
-
-#welcome{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  flex:1;
-  text-align:center;
-}
-
-.live-dot{
-  width:7px;
-  height:7px;
-  border-radius:50%;
-  background:#ef233c;
-  animation:pulseDot 2s infinite;
+select#modelSelect {
+  background: var(--select-bg);
+  border: 1px solid var(--select-border);
+  padding: 7px 10px;
+  border-radius: 10px;
+  color: var(--select-color);
+  font-size: 12px;
+  width: 100%;
+  transition: background 0.3s, color 0.3s;
 }
 </style>
 </head>
 
 <body>
-
 <div style="display:flex;height:100vh;">
 
   <!-- SIDEBAR -->
   <div class="sidebar">
-
-    <div style="padding:18px;border-bottom:1px solid rgba(255,255,255,0.05);">
-
+    <div style="padding:18px;border-bottom:1px solid var(--border);">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
         <div style="width:10px;height:10px;background:#ef233c;transform:rotate(45deg);border-radius:2px;"></div>
-
-        <span class="manrope" style="font-weight:800;">
-          NightMind
-        </span>
-
-        <span style="margin-left:auto;font-size:10px;background:rgba(239,35,60,0.12);padding:2px 7px;border-radius:10px;color:#ef233c;">
-          AI
-        </span>
+        <span class="manrope" style="font-weight:800;">NightMind</span>
+        <span style="margin-left:auto;font-size:10px;background:rgba(239,35,60,0.12);padding:2px 7px;border-radius:10px;color:#ef233c;">AI</span>
       </div>
-
-      <button class="new-btn" onclick="newChat()">
-        + New Conversation
-      </button>
-
+      <button class="new-btn" onclick="newChat()">+ New Conversation</button>
     </div>
 
-    <div style="padding:14px;font-size:11px;color:#444;">
-      CONVERSATIONS
-    </div>
+    <div style="padding:14px;font-size:11px;color:var(--text-muted);letter-spacing:0.8px;">CONVERSATIONS</div>
 
-    <div id="history" style="flex:1;padding:0 8px;display:flex;flex-direction:column;gap:2px;">
-      <div class="hist-item active">Welcome — get started</div>
-    </div>
+    <div id="history" style="flex:1;padding:0 8px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;"></div>
 
-    <div style="padding:14px;border-top:1px solid rgba(255,255,255,0.05);">
-
+    <div style="padding:14px;border-top:1px solid var(--border);">
       <div style="margin-bottom:12px;">
-
-        <select id="modelSelect"
-style="background:#111;border:1px solid rgba(255,255,255,0.08);padding:7px 10px;border-radius:10px;color:#aaa;font-size:12px;width:100%;">
-
-<option value="llama-3.3-70b-versatile">Llama 3.3 70B</option>
-
-<option value="llama-3.1-8b-instant">Llama 3.1 8B</option>
-
-<option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
-
-</select>
-
+        <select id="modelSelect">
+          <option value="llama-3.3-70b-versatile">Llama 3.3 70B</option>
+          <option value="llama-3.1-8b-instant">Llama 3.1 8B</option>
+          <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
+        </select>
       </div>
-
       <div style="display:flex;align-items:center;gap:10px;">
-
-        <div style="width:30px;height:30px;border-radius:50%;background:rgba(239,35,60,0.1);display:flex;align-items:center;justify-content:center;color:#ef233c;font-weight:700;">
-          U
-        </div>
-
+        <div style="width:30px;height:30px;border-radius:50%;background:rgba(239,35,60,0.1);display:flex;align-items:center;justify-content:center;color:#ef233c;font-weight:700;flex-shrink:0;">U</div>
         <div>
-          <div style="font-size:13px;">
-            You
-          </div>
-
-          <div style="font-size:11px;color:#444;">
-            Free Plan
-          </div>
+          <div style="font-size:13px;color:var(--text);">You</div>
+          <div style="font-size:11px;color:var(--text-muted);">Free Plan</div>
         </div>
-
       </div>
-
     </div>
-
   </div>
 
   <!-- CHAT -->
   <div class="chat-zone">
-
     <div class="topbar">
-
       <div style="display:flex;align-items:center;gap:10px;">
         <div class="live-dot"></div>
-
-        <span style="font-size:12px;color:#555;">
-          ONLINE
-        </span>
+        <span style="font-size:12px;color:var(--text-muted);">ONLINE</span>
       </div>
 
-      <button onclick="clearMessages()"
-        style="background:none;border:1px solid rgba(255,255,255,0.08);padding:6px 14px;border-radius:8px;color:#666;cursor:pointer;">
-        Clear
-      </button>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <!-- LIGHT/DARK TOGGLE -->
+        <div class="toggle-wrap" onclick="toggleTheme()" title="Toggle light/dark mode">
+          <span class="toggle-icon">🌙</span>
+          <div class="toggle-track">
+            <div class="toggle-thumb">☀️</div>
+          </div>
+          <span class="toggle-icon">☀️</span>
+        </div>
 
+        <button class="clear-btn" onclick="clearMessages()">Clear</button>
+      </div>
     </div>
 
     <!-- MESSAGES -->
     <div id="messages">
-
       <div id="welcome">
-
         <div style="width:60px;height:60px;background:rgba(239,35,60,0.1);border-radius:18px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
           <div style="width:22px;height:22px;background:#ef233c;transform:rotate(45deg);border-radius:4px;"></div>
         </div>
-
-        <h1 class="manrope" style="font-size:30px;font-weight:800;margin-bottom:10px;">
-          What's on your mind?
-        </h1>
-
-        <p style="color:#555;max-width:380px;line-height:1.7;">
-          NightMind powered by Groq AI.
-        </p>
-
+        <h1 class="manrope" style="font-size:30px;font-weight:800;margin-bottom:10px;">What's on your mind?</h1>
+        <p style="color:var(--text-muted);max-width:380px;line-height:1.7;">NightMind powered by Groq AI.</p>
       </div>
-
     </div>
 
     <!-- INPUT -->
     <div class="input-zone">
-
       <div class="input-wrap">
-
         <input
           id="chat-input"
           class="chat-input"
@@ -372,20 +422,36 @@ style="background:#111;border:1px solid rgba(255,255,255,0.08);padding:7px 10px;
           placeholder="Message NightMind..."
           onkeydown="if(event.key==='Enter'){sendMessage()}"
         >
-
-        <button class="send-btn" onclick="sendMessage()">
-          ➜
-        </button>
-
+        <button class="send-btn" onclick="sendMessage()">➜</button>
       </div>
-
     </div>
-
   </div>
-
 </div>
 
 <script>
+
+// ======================================
+// THEME TOGGLE
+// ======================================
+
+let isLight = localStorage.getItem('nightmind_theme') === 'light';
+
+function applyTheme(){
+  if(isLight){
+    document.body.classList.add('light');
+  } else {
+    document.body.classList.remove('light');
+  }
+}
+
+function toggleTheme(){
+  isLight = !isLight;
+  localStorage.setItem('nightmind_theme', isLight ? 'light' : 'dark');
+  applyTheme();
+}
+
+// Apply saved theme on load
+applyTheme();
 
 // ======================================
 // CHAT HISTORY
@@ -441,10 +507,6 @@ function saveMessage(role, content){
   saveChats();
 }
 
-// ======================================
-// NEW CHAT / CLEAR
-// ======================================
-
 function clearMessages(){
   const msgs = document.getElementById('messages');
   msgs.innerHTML = `
@@ -453,7 +515,7 @@ function clearMessages(){
         <div style="width:22px;height:22px;background:#ef233c;transform:rotate(45deg);border-radius:4px;"></div>
       </div>
       <h1 class="manrope" style="font-size:30px;font-weight:800;margin-bottom:10px;">New Conversation</h1>
-      <p style="color:#555;">Ask anything.</p>
+      <p style="color:var(--text-muted);">Ask anything.</p>
     </div>`;
 }
 
@@ -464,7 +526,7 @@ function newChat(){
 }
 
 // ======================================
-// SEND MESSAGE — calls /chat backend
+// SEND MESSAGE
 // ======================================
 
 let isBusy = false;
@@ -481,7 +543,6 @@ async function sendMessage(){
   const welcome = document.getElementById('welcome');
   if(welcome) welcome.remove();
 
-  // User bubble
   const userDiv = document.createElement('div');
   userDiv.className = 'msg-user';
   userDiv.textContent = text;
@@ -489,7 +550,6 @@ async function sendMessage(){
   messages.scrollTop = messages.scrollHeight;
   saveMessage('user', text);
 
-  // Typing indicator
   const typing = document.createElement('div');
   typing.className = 'typing-wrap';
   typing.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
@@ -500,7 +560,6 @@ async function sendMessage(){
   try{
     const model = document.getElementById('modelSelect').value;
 
-    // ✅ Calls YOUR backend — no API key in frontend
     const response = await fetch('/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -525,7 +584,6 @@ async function sendMessage(){
       reply = '⚠ Unexpected response: ' + JSON.stringify(data).slice(0, 200);
     }
 
-    // AI bubble with typewriter
     const aiDiv = document.createElement('div');
     aiDiv.className = 'msg-ai';
     messages.appendChild(aiDiv);
