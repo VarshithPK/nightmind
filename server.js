@@ -24,8 +24,9 @@ async function searchWeb(query) {
   try {
     const client = tavily({ apiKey: process.env.TAVILY_API_KEY });
     const result = await client.search(query, {
-      maxResults: 3,
-      searchDepth: "basic"
+  maxResults: 5,
+  searchDepth: "advanced"
+});
     });
     return result.results
       .map(r => `${r.title}: ${r.content}`)
@@ -55,7 +56,7 @@ app.post("/chat", async (req, res) => {
 
     // Add web search context if needed
     if (needsSearch(userMessage)) {
-      const searchResults = await searchWeb(userMessage);
+const searchResults = await searchWeb(userMessage + " " + new Date().getFullYear());
       if (searchResults) {
         systemContent += `\n\nHere is fresh real-time information from the web:\n${searchResults}\n\nIMPORTANT: Answer directly and confidently using ONLY this information. Do not say the information is not provided. Do not recommend other sources. Just answer the question directly from the data above.`;
       }
