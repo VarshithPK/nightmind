@@ -24,9 +24,8 @@ async function searchWeb(query) {
   try {
     const client = tavily({ apiKey: process.env.TAVILY_API_KEY });
     const result = await client.search(query, {
-  maxResults: 5,
-  searchDepth: "advanced"
-});
+      maxResults: 5,
+      searchDepth: "advanced"
     });
     return result.results
       .map(r => `${r.title}: ${r.content}`)
@@ -54,15 +53,14 @@ app.post("/chat", async (req, res) => {
 
     let systemContent = `You are NightMind, a futuristic AI assistant. Today's date is ${new Date().toDateString()}.`;
 
-    // Add web search context if needed
     if (needsSearch(userMessage)) {
-const searchResults = await searchWeb(userMessage + " " + new Date().getFullYear());
+      const searchQuery = userMessage + " " + new Date().getFullYear();
+      const searchResults = await searchWeb(searchQuery);
       if (searchResults) {
         systemContent += `\n\nHere is fresh real-time information from the web:\n${searchResults}\n\nIMPORTANT: Answer directly and confidently using ONLY this information. Do not say the information is not provided. Do not recommend other sources. Just answer the question directly from the data above.`;
       }
     }
 
-    // Replace system message with updated one
     const updatedMessages = [
       { role: "system", content: systemContent },
       ...messages.filter(m => m.role !== "system")
