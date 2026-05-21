@@ -45,6 +45,7 @@ function needsSearch(message) {
   return keywords.some(k => message.toLowerCase().includes(k));
 }
 
+// Chat endpoint
 app.post("/chat", async (req, res) => {
   try {
     const messages = req.body.messages || [];
@@ -57,44 +58,6 @@ app.post("/chat", async (req, res) => {
       const searchResults = await searchWeb(userMessage);
       if (searchResults) {
         systemContent += `\n\nHere is fresh real-time information from the web:\n${searchResults}\n\nIMPORTANT: Answer directly and confidently using ONLY this information. Do not say the information is not provided. Do not recommend other sources. Just answer the question directly from the data above.`;
-      }
-    }
-
-    // Replace system message with updated one
-    const updatedMessages = [
-      { role: "system", content: systemContent },
-      ...messages.filter(m => m.role !== "system")
-    ];
-
-    const response = await fetch(
-      "https://api.groq.com/openai/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.GROQ_API_KEY}`
-        },
-        body: JSON.stringify({
-          ...req.body,
-          messages: updatedMessages
-        }),
-      }
-    );
-
-    const data = await response.json();
-    res.json(data);
-
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-    let systemContent = `You are NightMind, a futuristic AI assistant. Today's date is ${new Date().toDateString()}.`;
-
-    // Add web search context if needed
-    if (needsSearch(userMessage)) {
-      const searchResults = await searchWeb(userMessage);
-      if (searchResults) {
-        systemContent += `\n\nHere is fresh real-time information from the web to answer accurately:\n${searchResults}\n\nUse this information to give an up to date answer.`;
       }
     }
 
