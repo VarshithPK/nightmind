@@ -431,6 +431,37 @@ select#modelSelect {
   flex-shrink: 0;
 }
 
+       .quick-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  justify-content:center;
+  margin-top:24px;
+  max-width:520px;
+}
+
+.quick-btn{
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
+  color:var(--text);
+  padding:12px 16px;
+  border-radius:14px;
+  cursor:pointer;
+  font-size:13px;
+  transition:all .2s ease;
+  backdrop-filter:blur(10px);
+}
+
+.quick-btn:hover{
+  border-color:rgba(239,35,60,0.45);
+  background:rgba(239,35,60,0.08);
+  transform:translateY(-2px);
+}
+
+body.light .quick-btn{
+  background:rgba(0,0,0,0.03);
+}
+
 /* ======================================
    MOBILE STYLES
 ====================================== */
@@ -625,6 +656,25 @@ select#modelSelect {
         </div>
         <h1 class="manrope" style="font-size:26px;font-weight:800;margin-bottom:10px;">What's on your mind?</h1>
         <p style="color:var(--text-muted);max-width:340px;line-height:1.7;font-size:14px;">NightMind powered by Groq AI.</p>
+         <div class="quick-actions">
+
+  <button class="quick-btn" onclick="quickPrompt('Explain black holes simply')">
+    🌌 Explain Black Holes
+  </button>
+
+  <button class="quick-btn" onclick="quickPrompt('Help me debug my code')">
+    💻 Debug Code
+  </button>
+
+  <button class="quick-btn" onclick="quickPrompt('Give me startup ideas')">
+    🚀 Startup Ideas
+  </button>
+
+  <button class="quick-btn" onclick="quickPrompt('Teach me something interesting')">
+    🧠 Teach Me Something
+  </button>
+
+</div>
       </div>
     </div>
 
@@ -863,6 +913,11 @@ async function sendMessage(){
     isBusy = false;
   }
 }
+ 
+  function quickPrompt(text){
+  document.getElementById('chat-input').value = text;
+  sendMessage();
+} 
 
 // Load saved chats on start
 setTimeout(() => {
