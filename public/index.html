@@ -436,53 +436,118 @@ select#modelSelect {
 ====================================== */
 @media (max-width: 768px) {
 
-  /* Show hamburger */
-  .hamburger { display: flex; }
+  html, body {
+    overflow-x: hidden;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
 
-  /* Sidebar becomes drawer */
+  .app-wrap {
+    width: 100vw;
+    overflow: hidden;
+  }
+
+  .hamburger {
+    display: flex;
+    z-index: 120;
+  }
+
   .sidebar {
     position: fixed;
-    left: 0; top: 0;
-    height: 100vh;
+    top: 0;
+    left: 0;
+    width: 260px;
+    height: 100dvh;
     transform: translateX(-100%);
-    box-shadow: 4px 0 20px rgba(0,0,0,0.4);
-    animation: none;
+    transition: transform 0.3s ease;
+    z-index: 100;
+    overflow-y: auto;
   }
+
   .sidebar.open {
     transform: translateX(0);
-    animation: slideIn 0.3s ease;
   }
 
-  /* Show overlay when sidebar is open */
-  .sidebar-overlay { display: block; }
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 90;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
 
-  /* Chat takes full width */
-  .chat-zone { width: 100%; }
+  .sidebar-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
 
-  /* Slightly adjust messages padding */
-  #messages { padding: 16px 14px 8px; }
+  .chat-zone {
+    width: 100%;
+    min-width: 0;
+    height: 100dvh;
+    overflow: hidden;
+  }
 
-  /* Full width bubbles on mobile */
-  .msg-user { max-width: 88%; }
-  .msg-ai { max-width: 92%; }
+  #messages {
+    padding: 16px 12px 10px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 
-  /* Smaller input padding */
-  .input-zone { padding: 10px 12px 14px; }
+  .msg-user {
+    max-width: 88%;
+    font-size: 14px;
+  }
 
-  /* Hide toggle label on mobile to save space */
-  .toggle-label { display: none; }
+  .msg-ai {
+    max-width: 92%;
+    font-size: 14px;
+  }
 
-  /* Topbar padding */
-  .topbar { padding: 11px 14px; }
+  .topbar {
+    padding: 10px 12px;
+    min-height: 56px;
+  }
 
-  /* Welcome text smaller on mobile */
-  #welcome h1 { font-size: 22px !important; }
-  #welcome p { font-size: 13px !important; }
-}
+  .input-zone {
+    padding: 10px;
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  }
 
-@media (max-width: 400px) {
-  .msg-user, .msg-ai { max-width: 95%; font-size: 13px; }
-  .chat-input { font-size: 13px; padding: 12px 48px 12px 16px; }
+  .input-wrap {
+    width: 100%;
+  }
+
+  .chat-input {
+    width: 100%;
+    font-size: 16px;
+    padding: 13px 50px 13px 16px;
+  }
+
+  .send-btn {
+    width: 38px;
+    height: 38px;
+    right: 5px;
+  }
+
+  .toggle-label {
+    display: none;
+  }
+
+  #welcome {
+    padding: 20px 14px;
+  }
+
+  #welcome h1 {
+    font-size: 22px !important;
+  }
+
+  #welcome p {
+    font-size: 13px !important;
+  }
 }
 </style>
 </head>
@@ -583,6 +648,14 @@ select#modelSelect {
 </div>
 
 <script>
+  function handleEnter(event){
+  if(event.key === 'Enter'){
+    event.preventDefault();
+    sendMessage();
+  }
+}
+
+
 
 // ======================================
 // THEME TOGGLE
