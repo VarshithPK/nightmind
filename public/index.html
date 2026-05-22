@@ -1031,7 +1031,77 @@ function newChat(){
 
   currentChatId = null;
 
-  location.reload();
+  const messages =
+    document.getElementById('messages');
+
+  messages.innerHTML = `
+
+    <div id="welcome">
+
+      <div style="
+        width:70px;
+        height:70px;
+        background:rgba(239,35,60,0.12);
+        border-radius:22px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        margin-bottom:22px;
+        box-shadow:0 0 35px rgba(239,35,60,0.18);
+      ">
+        <div style="
+          width:24px;
+          height:24px;
+          background:#ef233c;
+          transform:rotate(45deg);
+          border-radius:4px;
+        "></div>
+      </div>
+
+      <h1 class="manrope" style="
+        font-size:34px;
+        font-weight:800;
+        margin-bottom:12px;
+      ">
+        What's on your mind?
+      </h1>
+
+      <p style="
+        color:var(--text-muted);
+        max-width:500px;
+        line-height:1.8;
+        font-size:15px;
+        margin-bottom:10px;
+      ">
+        NightMind powered by Groq AI.
+      </p>
+
+      <div class="quick-actions">
+
+        <button class="quick-btn" onclick="quickPrompt('Explain black holes simply')">
+          🌌 Explain Black Holes
+        </button>
+
+        <button class="quick-btn" onclick="quickPrompt('Help me debug my code')">
+          💻 Debug Code
+        </button>
+
+        <button class="quick-btn" onclick="quickPrompt('Give me startup ideas')">
+          🚀 Startup Ideas
+        </button>
+
+        <button class="quick-btn" onclick="quickPrompt('Teach me something interesting')">
+          🧠 Teach Me Something
+        </button>
+
+      </div>
+
+    </div>
+  `;
+
+  renderHistory();
+
+  closeSidebar();
 
 }
 
