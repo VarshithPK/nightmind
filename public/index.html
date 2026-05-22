@@ -25,11 +25,10 @@
   --text:#fff;
   --text-ai:#d1d1d1;
   --text-muted:#777;
-  --text-hist:#666;
+  --text-hist:#888;
   --placeholder:#555;
 
   --scrollbar:rgba(255,255,255,0.08);
-  --overlay:rgba(0,0,0,0.7);
 }
 
 body.light{
@@ -47,7 +46,7 @@ body.light{
   --text:#111;
   --text-ai:#333;
   --text-muted:#777;
-  --text-hist:#777;
+  --text-hist:#666;
   --placeholder:#999;
 }
 
@@ -75,9 +74,7 @@ body{
   font-family:'Manrope',sans-serif;
 }
 
-/* ======================================
-   AURORA BG
-====================================== */
+/* AURORA */
 
 .aurora{
   position:fixed;
@@ -103,19 +100,14 @@ body{
   }
 }
 
-/* ======================================
-   APP
-====================================== */
+/* APP */
 
 .app-wrap{
   display:flex;
   height:100vh;
-  position:relative;
 }
 
-/* ======================================
-   SIDEBAR
-====================================== */
+/* SIDEBAR */
 
 .sidebar{
   width:260px;
@@ -125,7 +117,6 @@ body{
   background:var(--bg-sidebar);
 
   backdrop-filter:blur(18px);
-  -webkit-backdrop-filter:blur(18px);
 
   border-right:1px solid var(--border);
 
@@ -133,12 +124,6 @@ body{
   flex-direction:column;
 
   z-index:50;
-
-  transition:.3s;
-}
-
-.sidebar-overlay{
-  display:none;
 }
 
 .chat-zone{
@@ -146,12 +131,13 @@ body{
   display:flex;
   flex-direction:column;
   overflow:hidden;
-  position:relative;
 }
 
-/* ======================================
-   TOPBAR
-====================================== */
+.sidebar-overlay{
+  display:none;
+}
+
+/* TOPBAR */
 
 .topbar{
   display:flex;
@@ -165,8 +151,6 @@ body{
   backdrop-filter:blur(10px);
 
   border-bottom:1px solid var(--border);
-
-  z-index:10;
 }
 
 .topbar-left,
@@ -175,6 +159,8 @@ body{
   align-items:center;
   gap:12px;
 }
+
+/* HAMBURGER */
 
 .hamburger{
   display:none;
@@ -190,9 +176,7 @@ body{
   border-radius:2px;
 }
 
-/* ======================================
-   TOGGLE
-====================================== */
+/* THEME */
 
 .toggle-wrap{
   display:flex;
@@ -205,9 +189,8 @@ body{
   width:42px;
   height:22px;
   border-radius:50px;
-  position:relative;
-
   background:rgba(255,255,255,.08);
+  position:relative;
 }
 
 .toggle-thumb{
@@ -230,9 +213,7 @@ body.light .toggle-thumb{
   background:var(--red);
 }
 
-/* ======================================
-   CHAT
-====================================== */
+/* MESSAGES */
 
 #messages{
   flex:1;
@@ -265,23 +246,12 @@ body.light .toggle-thumb{
   font-size:14px;
 
   animation:fadeUp .25s ease;
-
-  transition:
-    transform .2s ease,
-    box-shadow .2s ease,
-    border-color .2s ease;
-}
-
-.msg-user:hover,
-.msg-ai:hover{
-  transform:translateY(-2px);
-  box-shadow:0 8px 30px rgba(0,0,0,.25);
 }
 
 .msg-user{
   align-self:flex-end;
 
-  background:rgba(239,35,60,.10);
+  background:rgba(239,35,60,.12);
 
   border:1px solid rgba(239,35,60,.25);
 
@@ -313,48 +283,22 @@ body.light .toggle-thumb{
   }
 }
 
-/* ======================================
-   TYPING
-====================================== */
+/* WELCOME */
 
-.typing-wrap{
-  background:var(--bg-msg-ai);
+#welcome{
+  flex:1;
 
-  border:1px solid var(--border-msg-ai);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
 
-  padding:12px 16px;
+  text-align:center;
 
-  border-radius:5px 18px 18px 18px;
-
-  width:fit-content;
+  padding:20px;
 }
 
-.live-dot{
-  width:8px;
-  height:8px;
-  border-radius:50%;
-  background:var(--red);
-
-  animation:pulseDot 1.5s infinite;
-}
-
-@keyframes pulseDot{
-  0%,100%{
-    opacity:1;
-    transform:scale(1);
-  }
-  50%{
-    opacity:.4;
-    transform:scale(.85);
-  }
-}
-
-/* ======================================
-   WELCOME
-====================================== */
 .ai-orb{
-  position:relative;
-
   width:95px;
   height:95px;
 
@@ -365,33 +309,13 @@ body.light .toggle-thumb{
 
   box-shadow:
     0 0 25px rgba(239,35,60,.6),
-    0 0 70px rgba(239,35,60,.25),
-    inset 0 0 20px rgba(255,255,255,.15);
+    0 0 70px rgba(239,35,60,.25);
 
   animation:
     floatOrb 4s ease-in-out infinite,
     pulseOrb 3s infinite;
 
-  overflow:hidden;
-
   margin-bottom:24px;
-}
-
-.ai-orb::before{
-  content:'';
-
-  position:absolute;
-  inset:-20px;
-
-  background:
-    conic-gradient(
-      from 0deg,
-      transparent,
-      rgba(255,255,255,.25),
-      transparent
-    );
-
-  animation:spinOrb 6s linear infinite;
 }
 
 @keyframes floatOrb{
@@ -414,35 +338,11 @@ body.light .toggle-thumb{
   }
 }
 
-@keyframes spinOrb{
-  from{
-    transform:rotate(0deg);
-  }
-
-  to{
-    transform:rotate(360deg);
-  }
-}
-#welcome{
-  flex:1;
-
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-
-  text-align:center;
-
-  padding:20px;
-}
-
 .quick-actions{
   display:flex;
   flex-wrap:wrap;
   justify-content:center;
   gap:10px;
-
-  max-width:520px;
 
   margin-top:28px;
 }
@@ -460,11 +360,7 @@ body.light .toggle-thumb{
 
   cursor:pointer;
 
-  font-size:13px;
-
   transition:.2s;
-
-  backdrop-filter:blur(10px);
 }
 
 .quick-btn:hover{
@@ -475,9 +371,7 @@ body.light .toggle-thumb{
   background:rgba(239,35,60,.08);
 }
 
-/* ======================================
-   INPUT
-====================================== */
+/* INPUT */
 
 .input-zone{
   padding:12px 16px 16px;
@@ -519,10 +413,10 @@ body.light .toggle-thumb{
   color:var(--text);
 
   font-size:15px;
+}
 
-  font-family:'Inter',sans-serif;
-
-  transition:.3s;
+.chat-input::placeholder{
+  color:var(--placeholder);
 }
 
 .chat-input:focus{
@@ -531,10 +425,6 @@ body.light .toggle-thumb{
   box-shadow:
     0 0 0 1px rgba(239,35,60,.4),
     0 0 25px rgba(239,35,60,.15);
-}
-
-.chat-input::placeholder{
-  color:var(--placeholder);
 }
 
 .send-btn{
@@ -554,26 +444,9 @@ body.light .toggle-thumb{
   color:#fff;
 
   cursor:pointer;
-
-  display:flex;
-  justify-content:center;
-  align-items:center;
-
-  transition:.2s;
 }
 
-.send-btn:hover{
-  transform:scale(1.05);
-}
-
-/* ======================================
-   SIDEBAR BUTTONS
-====================================== */
-
-.new-btn,
-.clear-btn{
-  cursor:pointer;
-}
+/* BUTTONS */
 
 .new-btn{
   width:100%;
@@ -589,6 +462,8 @@ body.light .toggle-thumb{
   color:var(--red);
 
   font-weight:700;
+
+  cursor:pointer;
 }
 
 .hist-item{
@@ -602,8 +477,6 @@ body.light .toggle-thumb{
 
   cursor:pointer;
 
-  transition:.2s;
-
   overflow:hidden;
   white-space:nowrap;
   text-overflow:ellipsis;
@@ -615,13 +488,43 @@ body.light .toggle-thumb{
 
 .hist-item.active{
   background:rgba(239,35,60,.10);
-
   color:var(--red);
 }
 
-/* ======================================
-   MOBILE
-====================================== */
+/* TYPING */
+
+.typing-wrap{
+  background:var(--bg-msg-ai);
+
+  border:1px solid var(--border-msg-ai);
+
+  padding:12px 16px;
+
+  border-radius:5px 18px 18px 18px;
+
+  width:fit-content;
+}
+
+.live-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:var(--red);
+
+  animation:pulseDot 1.5s infinite;
+}
+
+@keyframes pulseDot{
+  0%,100%{
+    opacity:1;
+  }
+
+  50%{
+    opacity:.4;
+  }
+}
+
+/* MOBILE */
 
 @media(max-width:768px){
 
@@ -631,14 +534,11 @@ body.light .toggle-thumb{
 
   .sidebar{
     position:fixed;
-    top:0;
     left:0;
+    top:0;
 
     transform:translateX(-100%);
-
-    transition:.3s ease;
-
-    z-index:100;
+    transition:.3s;
   }
 
   .sidebar.open{
@@ -654,37 +554,14 @@ body.light .toggle-thumb{
     background:rgba(0,0,0,.6);
 
     opacity:0;
-
     pointer-events:none;
 
     transition:.3s;
-
-    z-index:90;
   }
 
   .sidebar-overlay.show{
     opacity:1;
     pointer-events:auto;
-  }
-
-  #messages{
-    padding:16px 12px;
-  }
-
-  .msg-user{
-    max-width:88%;
-  }
-
-  .msg-ai{
-    max-width:92%;
-  }
-
-  .chat-input{
-    font-size:16px;
-  }
-
-  .toggle-label{
-    display:none;
   }
 
 }
@@ -698,297 +575,201 @@ body.light .toggle-thumb{
 
 <div class="app-wrap">
 
-  <div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
 
-  <!-- SIDEBAR -->
+<!-- SIDEBAR -->
 
-  <div class="sidebar" id="sidebar">
+<div class="sidebar" id="sidebar">
 
-    <div style="padding:18px;border-bottom:1px solid var(--border);">
+<div style="padding:18px;border-bottom:1px solid var(--border);">
 
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
 
-        <div style="width:10px;height:10px;background:#ef233c;transform:rotate(45deg);border-radius:2px;"></div>
+<div style="width:10px;height:10px;background:#ef233c;transform:rotate(45deg);border-radius:2px;"></div>
 
-        <span class="manrope" style="font-weight:800;font-size:15px;">
-          NightMind
-        </span>
+<span class="manrope" style="font-weight:800;font-size:15px;">
+NightMind
+</span>
 
-      </div>
+</div>
 
-      <button class="new-btn" onclick="newChat()">
-        + New Conversation
-      </button>
+<button class="new-btn" onclick="newChat()">
++ New Conversation
+</button>
 
-    </div>
+</div>
 
-    <div style="padding:12px 16px 6px;font-size:10px;color:var(--text-muted);letter-spacing:1px;font-weight:700;text-transform:uppercase;">
-      Conversations
-    </div>
+<div style="padding:12px 16px 6px;font-size:10px;color:var(--text-muted);font-weight:700;letter-spacing:1px;">
+CONVERSATIONS
+</div>
 
-    <div id="history" style="flex:1;padding:0 8px;display:flex;flex-direction:column;gap:4px;overflow-y:auto;"></div>
+<div id="history" style="flex:1;padding:0 8px;overflow-y:auto;"></div>
 
-<!-- SIDEBAR FOOTER -->
+<div style="padding:16px;border-top:1px solid var(--border);">
 
-<div style="
-  padding:16px;
-  border-top:1px solid var(--border);
-  background:rgba(255,255,255,0.02);
-  backdrop-filter:blur(12px);
+<div style="margin-bottom:14px;">
+
+<div style="font-size:10px;color:var(--text-muted);margin-bottom:7px;font-weight:700;">
+AI MODEL
+</div>
+
+<select id="modelSelect" style="
+width:100%;
+padding:10px;
+border-radius:12px;
+background:rgba(255,255,255,.04);
+border:1px solid var(--border);
+color:var(--text);
 ">
 
-  <!-- MODEL SELECT -->
+<option value="llama-3.3-70b-versatile">
+Llama 3.3 70B
+</option>
 
-  <div style="margin-bottom:14px;">
+<option value="llama-3.1-8b-instant">
+Llama 3.1 8B
+</option>
 
-    <div style="
-      font-size:10px;
-      color:var(--text-muted);
-      margin-bottom:7px;
-      letter-spacing:1px;
-      text-transform:uppercase;
-      font-weight:700;
-    ">
-      AI MODEL
-    </div>
+<option value="mixtral-8x7b-32768">
+Mixtral 8x7B
+</option>
 
-    <select id="modelSelect" style="
-      width:100%;
-      padding:10px 12px;
-      border-radius:12px;
-      border:1px solid var(--border);
-      background:rgba(255,255,255,0.04);
-      color:var(--text);
-      outline:none;
-      font-size:13px;
-      backdrop-filter:blur(10px);
-      transition:.25s;
-      cursor:pointer;
-    ">
-
-      <option value="llama-3.3-70b-versatile">
-        Llama 3.3 70B
-      </option>
-
-      <option value="llama-3.1-8b-instant">
-        Llama 3.1 8B
-      </option>
-
-      <option value="mixtral-8x7b-32768">
-        Mixtral 8x7B
-      </option>
-
-    </select>
-
-  </div>
-
-  <!-- USER CARD -->
-
-  <div style="
-    display:flex;
-    align-items:center;
-    gap:12px;
-    padding:12px;
-    border-radius:16px;
-    background:
-      linear-gradient(
-        135deg,
-        rgba(239,35,60,0.12),
-        rgba(255,255,255,0.03)
-      );
-    border:1px solid rgba(255,255,255,0.06);
-  ">
-
-    <div style="
-      width:42px;
-      height:42px;
-      border-radius:50%;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:
-        linear-gradient(
-          135deg,
-          #ef233c,
-          #ff4d6d
-        );
-      color:white;
-      font-weight:800;
-      font-size:14px;
-      box-shadow:
-        0 0 20px rgba(239,35,60,.35);
-    ">
-      U
-    </div>
-
-    <div style="flex:1;">
-
-      <div style="
-        font-size:14px;
-        font-weight:700;
-        color:var(--text);
-      ">
-        You
-      </div>
-
-      <div style="
-        font-size:11px;
-        color:var(--text-muted);
-        margin-top:2px;
-      ">
-        Free Plan
-      </div>
-
-    </div>
-
-    <div style="
-      width:10px;
-      height:10px;
-      border-radius:50%;
-      background:#00ff88;
-      box-shadow:
-        0 0 10px #00ff88;
-    "></div>
-
-  </div>
+</select>
 
 </div>
 
 </div>
 
-  </div>
+</div>
 
-  <!-- CHAT -->
+<!-- CHAT -->
 
-  <div class="chat-zone">
+<div class="chat-zone">
 
-    <div class="topbar">
+<div class="topbar">
 
-      <div class="topbar-left">
+<div class="topbar-left">
 
-        <div class="hamburger" onclick="openSidebar()">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
+<div class="hamburger" onclick="openSidebar()">
+<span></span>
+<span></span>
+<span></span>
+</div>
 
-        <div class="live-dot"></div>
+<div class="live-dot"></div>
 
-        <span style="font-size:12px;color:var(--text-muted);font-weight:600;">
-          ONLINE
-        </span>
+<span style="font-size:12px;color:var(--text-muted);font-weight:600;">
+ONLINE
+</span>
 
-      </div>
+</div>
 
-      <div class="topbar-right">
+<div class="topbar-right">
 
-        <div class="toggle-wrap" onclick="toggleTheme()">
+<div class="toggle-wrap" onclick="toggleTheme()">
 
-          <span>🌙</span>
+<span>🌙</span>
 
-          <div class="toggle-track">
-            <div class="toggle-thumb"></div>
-          </div>
+<div class="toggle-track">
+<div class="toggle-thumb"></div>
+</div>
 
-          <span class="toggle-label" style="font-size:12px;color:var(--text-muted);">
-            Theme
-          </span>
+</div>
 
-        </div>
+</div>
 
-      </div>
+</div>
 
-    </div>
+<!-- MESSAGES -->
 
-    <!-- MESSAGES -->
+<div id="messages">
 
-    <div id="messages">
+<div id="welcome">
 
-      <div id="welcome">
+<div class="ai-orb"></div>
 
-        <div class="ai-orb"></div>
+<h1 class="manrope" style="font-size:34px;font-weight:800;margin-bottom:10px;">
+What's on your mind?
+</h1>
 
-        <h1 class="manrope" style="font-size:34px;font-weight:800;margin-bottom:10px;">
-          What's on your mind?
-        </h1>
+<p style="color:var(--text-muted);max-width:420px;line-height:1.7;">
+NightMind powered by Groq AI.
+</p>
 
-        <p style="color:var(--text-muted);max-width:420px;line-height:1.7;">
-          NightMind powered by Groq AI.
-        </p>
+<div class="quick-actions">
 
-        <div class="quick-actions">
+<button class="quick-btn" onclick="quickPrompt('Explain black holes simply')">
+🌌 Explain Black Holes
+</button>
 
-          <button class="quick-btn" onclick="quickPrompt('Explain black holes simply')">
-            🌌 Explain Black Holes
-          </button>
+<button class="quick-btn" onclick="quickPrompt('Help me debug my code')">
+💻 Debug Code
+</button>
 
-          <button class="quick-btn" onclick="quickPrompt('Help me debug my code')">
-            💻 Debug Code
-          </button>
+<button class="quick-btn" onclick="quickPrompt('Give me startup ideas')">
+🚀 Startup Ideas
+</button>
 
-          <button class="quick-btn" onclick="quickPrompt('Give me startup ideas')">
-            🚀 Startup Ideas
-          </button>
+</div>
 
-          <button class="quick-btn" onclick="quickPrompt('Teach me something interesting')">
-            🧠 Teach Me Something
-          </button>
+</div>
 
-        </div>
+</div>
 
-      </div>
+<!-- INPUT -->
 
-    </div>
+<div class="input-zone">
 
-    <!-- INPUT -->
+<div class="input-wrap">
 
-    <div class="input-zone">
+<textarea
+id="chat-input"
+class="chat-input"
+placeholder="Message NightMind..."
+onkeydown="handleEnter(event)"
+></textarea>
 
-      <div class="input-wrap">
+<button class="send-btn" onclick="sendMessage()">
+➤
+</button>
 
-        <textarea
-          id="chat-input"
-          class="chat-input"
-          placeholder="Message NightMind..."
-          onkeydown="handleEnter(event)"
-        ></textarea>
+</div>
 
-        <button class="send-btn" onclick="sendMessage()">
+</div>
 
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <line x1="22" y1="2" x2="11" y2="13"/>
-            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-          </svg>
-
-        </button>
-
-      </div>
-
-    </div>
-
-  </div>
+</div>
 
 </div>
 
 <script>
 
-/* ======================================
-   TYPE SOUND
-====================================== */
+/* TYPE SOUND */
 
 const typeSound = new Audio(
-  "https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"
+"https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"
 );
 
 function playTypeSound(){
+
   typeSound.currentTime = 0;
   typeSound.volume = 0.08;
+
   typeSound.play();
+
 }
 
-/* ======================================
-   ENTER
-====================================== */
+/* AUTO RESIZE */
+
+const chatInput = document.getElementById('chat-input');
+
+chatInput.addEventListener('input', () => {
+
+  chatInput.style.height = 'auto';
+  chatInput.style.height = chatInput.scrollHeight + 'px';
+
+});
+
+/* ENTER */
 
 function handleEnter(event){
 
@@ -997,29 +778,15 @@ function handleEnter(event){
     event.preventDefault();
 
     sendMessage();
+
   }
 
 }
 
-/* ======================================
-   AUTO RESIZE
-====================================== */
+/* THEME */
 
-const chatInput = document.getElementById('chat-input');
-
-chatInput.addEventListener('input', () => {
-
-  chatInput.style.height = 'auto';
-
-  chatInput.style.height = chatInput.scrollHeight + 'px';
-
-});
-
-/* ======================================
-   THEME
-====================================== */
-
-let isLight = localStorage.getItem('nightmind_theme') === 'light';
+let isLight =
+localStorage.getItem('nightmind_theme') === 'light';
 
 function applyTheme(){
 
@@ -1042,47 +809,25 @@ function toggleTheme(){
 
 applyTheme();
 
-/* ======================================
-   SIDEBAR
-====================================== */
+/* SIDEBAR */
 
 function openSidebar(){
 
-  document
-    .getElementById('sidebar')
-    .classList.add('open');
+  document.getElementById('sidebar').classList.add('open');
 
-  document
-    .getElementById('overlay')
-    .classList.add('show');
+  document.getElementById('overlay').classList.add('show');
 
 }
 
 function closeSidebar(){
 
-  document
-    .getElementById('sidebar')
-    .classList.remove('open');
+  document.getElementById('sidebar').classList.remove('open');
 
-  document
-    .getElementById('overlay')
-    .classList.remove('show');
+  document.getElementById('overlay').classList.remove('show');
 
 }
 
-window.addEventListener('resize', () => {
-
-  if(window.innerWidth > 768){
-
-    closeSidebar();
-
-  }
-
-});
-
-/* ======================================
-   CHAT HISTORY
-====================================== */
+/* CHAT STORAGE */
 
 let currentChatId = null;
 
@@ -1101,35 +846,34 @@ function saveChats(){
 
 function renderHistory(){
 
-  const history = document.getElementById('history');
+  const history =
+    document.getElementById('history');
 
   history.innerHTML = '';
 
   Object.keys(chats)
-    .reverse()
-    .forEach(chatId => {
+  .reverse()
+  .forEach(chatId => {
 
-      const chat = chats[chatId];
+    const item = document.createElement('div');
 
-      const item = document.createElement('div');
+    item.className =
+      'hist-item ' +
+      (chatId === currentChatId ? 'active' : '');
 
-      item.className =
-        'hist-item ' +
-        (chatId === currentChatId ? 'active' : '');
+    item.textContent = chats[chatId].title;
 
-      item.textContent = chat.title;
+    item.onclick = () => {
 
-      item.onclick = () => {
+      loadChat(chatId);
 
-        loadChat(chatId);
+      closeSidebar();
 
-        closeSidebar();
+    };
 
-      };
+    history.appendChild(item);
 
-      history.appendChild(item);
-
-    });
+  });
 
 }
 
@@ -1140,8 +884,8 @@ function createChat(firstMessage='New Chat'){
   chats[currentChatId] = {
 
     title:
-      firstMessage.length > 30
-      ? firstMessage.substring(0,30) + '...'
+      firstMessage.length > 28
+      ? firstMessage.substring(0,28) + '...'
       : firstMessage,
 
     messages:[]
@@ -1196,69 +940,52 @@ function loadChat(chatId){
 
   });
 
+  messages.scrollTop = messages.scrollHeight;
+
 }
 
 function newChat(){
 
   currentChatId = null;
 
-  const messages =
-    document.getElementById('messages');
-messages.innerHTML = `
+  document.getElementById('messages').innerHTML = `
 
-<div id="welcome">
+  <div id="welcome">
 
-  <div class="ai-orb"></div>
+    <div class="ai-orb"></div>
 
-  <h1 class="manrope" style="
-    font-size:34px;
-    font-weight:800;
-    margin-bottom:12px;
-  ">
-    What's on your mind?
-  </h1>
+    <h1 class="manrope" style="font-size:34px;font-weight:800;margin-bottom:10px;">
+      What's on your mind?
+    </h1>
 
-  <p style="
-    color:var(--text-muted);
-    max-width:500px;
-    line-height:1.8;
-    font-size:15px;
-    margin-bottom:10px;
-  ">
-    NightMind powered by Groq AI.
-  </p>
+    <p style="color:var(--text-muted);max-width:420px;line-height:1.7;">
+      NightMind powered by Groq AI.
+    </p>
 
-  <div class="quick-actions">
+    <div class="quick-actions">
 
-    <button class="quick-btn" onclick="quickPrompt('Explain black holes simply')">
-      🌌 Explain Black Holes
-    </button>
+      <button class="quick-btn" onclick="quickPrompt('Explain black holes simply')">
+        🌌 Explain Black Holes
+      </button>
 
-    <button class="quick-btn" onclick="quickPrompt('Help me debug my code')">
-      💻 Debug Code
-    </button>
+      <button class="quick-btn" onclick="quickPrompt('Help me debug my code')">
+        💻 Debug Code
+      </button>
 
-    <button class="quick-btn" onclick="quickPrompt('Give me startup ideas')">
-      🚀 Startup Ideas
-    </button>
+      <button class="quick-btn" onclick="quickPrompt('Give me startup ideas')">
+        🚀 Startup Ideas
+      </button>
 
-    <button class="quick-btn" onclick="quickPrompt('Teach me something interesting')">
-      🧠 Teach Me Something
-    </button>
+    </div>
 
   </div>
+  `;
 
-</div>
-`;
   renderHistory();
-
-  closeSidebar();
 
 }
 
-/* ======================================
-   QUICK PROMPT
-====================================== */
+/* QUICK PROMPT */
 
 function quickPrompt(text){
 
@@ -1268,9 +995,7 @@ function quickPrompt(text){
 
 }
 
-/* ======================================
-   SEND MESSAGE
-====================================== */
+/* SEND */
 
 let isBusy = false;
 
@@ -1286,6 +1011,7 @@ async function sendMessage(){
   if(!text) return;
 
   input.value = '';
+
   input.style.height = '54px';
 
   const messages =
@@ -1313,16 +1039,16 @@ async function sendMessage(){
   typing.className = 'typing-wrap';
 
   typing.innerHTML = `
-    <div style="
-      display:flex;
-      align-items:center;
-      gap:8px;
-      font-size:13px;
-      color:var(--text-muted);
-    ">
-      <div class="live-dot"></div>
-      NightMind is thinking...
-    </div>
+  <div style="
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:13px;
+    color:var(--text-muted);
+  ">
+    <div class="live-dot"></div>
+    NightMind is thinking...
+  </div>
   `;
 
   messages.appendChild(typing);
@@ -1333,7 +1059,10 @@ async function sendMessage(){
 
   try{
 
-    const response = await fetch('/chat',{
+    const selectedModel =
+      document.getElementById('modelSelect').value;
+
+    const response = await fetch('/chat', {
 
       method:'POST',
 
@@ -1343,7 +1072,7 @@ async function sendMessage(){
 
       body:JSON.stringify({
 
-        model:'llama-3.3-70b-versatile',
+        model:selectedModel,
 
         messages:[
           {
@@ -1353,12 +1082,19 @@ async function sendMessage(){
         ],
 
         temperature:0.7,
-
         max_tokens:1000
 
       })
 
     });
+
+    if(!response.ok){
+
+      throw new Error(
+        'Server Error ' + response.status
+      );
+
+    }
 
     const data = await response.json();
 
@@ -1376,8 +1112,7 @@ async function sendMessage(){
 
     } else {
 
-      reply =
-        '⚠ Unexpected response';
+      reply = '⚠ Unexpected response';
 
     }
 
@@ -1430,7 +1165,7 @@ async function sendMessage(){
     errDiv.className = 'msg-ai';
 
     errDiv.textContent =
-      '⚠ Error: ' + err.message;
+      '⚠ ' + err.message;
 
     messages.appendChild(errDiv);
 
@@ -1440,9 +1175,7 @@ async function sendMessage(){
 
 }
 
-/* ======================================
-   LOAD SAVED CHATS
-====================================== */
+/* LOAD SAVED CHATS */
 
 setTimeout(() => {
 
