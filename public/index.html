@@ -307,72 +307,74 @@ body.light .toggle-thumb{
   border-radius:50%;
 
   background:
-    radial-gradient(circle at 35% 35%,
-      #ff8aa0 0%,
-      #ff1744 18%,
-      #ef233c 40%,
-      #8b0000 100%
+    radial-gradient(circle at 30% 30%,
+      #ff9db0 0%,
+      #ff3355 18%,
+      #ef233c 42%,
+      #650010 100%
     );
 
   box-shadow:
-    0 0 20px rgba(255,0,70,.9),
-    0 0 60px rgba(255,0,70,.7),
-    0 0 120px rgba(255,0,70,.45),
-    inset 0 0 35px rgba(255,255,255,.18);
+    0 0 25px rgba(255,0,70,.9),
+    0 0 60px rgba(255,0,70,.6),
+    0 0 120px rgba(255,0,70,.35);
+
+  overflow:hidden;
 
   animation:
     orbFloat 5s ease-in-out infinite,
-    orbPulse 3s infinite alternate;
-
-  overflow:hidden;
+    orbPulse 3s ease-in-out infinite;
 }
 
-/* ENERGY LINES */
+/* SMOOTH ENERGY */
 
 .ai-orb::before{
   content:'';
 
   position:absolute;
-  inset:-30%;
+  inset:-20%;
+
+  border-radius:50%;
 
   background:
-    repeating-conic-gradient(
-      from 0deg,
-      transparent 0deg 10deg,
-      rgba(255,255,255,.18) 10deg 13deg,
-      transparent 13deg 20deg
+    radial-gradient(
+      circle,
+      transparent 45%,
+      rgba(255,255,255,.06) 60%,
+      transparent 75%
     );
 
-  animation:orbSpin 12s linear infinite;
+  filter:blur(8px);
 
-  mix-blend-mode:screen;
+  animation:spin 8s linear infinite;
 }
 
-/* OUTER GLOW RING */
+/* GLOW LAYER */
 
 .ai-orb::after{
   content:'';
 
   position:absolute;
-  inset:-12px;
+  inset:0;
 
   border-radius:50%;
 
-  border:2px solid rgba(255,0,70,.25);
+  background:
+    radial-gradient(circle at 50% 50%,
+      rgba(255,255,255,.18),
+      transparent 60%
+    );
 
-  box-shadow:
-    0 0 25px rgba(255,0,70,.5);
-
-  animation:ringPulse 3s infinite;
+  mix-blend-mode:screen;
 }
 
-@keyframes orbSpin{
+@keyframes spin{
   from{
-    transform:rotate(0deg);
+    transform:rotate(0deg) scale(1);
   }
 
   to{
-    transform:rotate(360deg);
+    transform:rotate(360deg) scale(1.08);
   }
 }
 
@@ -382,31 +384,27 @@ body.light .toggle-thumb{
   }
 
   50%{
-    transform:translateY(-12px);
+    transform:translateY(-10px);
   }
 }
 
 @keyframes orbPulse{
-  from{
-    transform:scale(1);
-  }
-
-  to{
-    transform:scale(1.06);
-  }
-}
-
-@keyframes ringPulse{
   0%,100%{
-    transform:scale(1);
-    opacity:.6;
+    box-shadow:
+      0 0 25px rgba(255,0,70,.9),
+      0 0 60px rgba(255,0,70,.6),
+      0 0 120px rgba(255,0,70,.35);
   }
 
   50%{
-    transform:scale(1.08);
-    opacity:1;
+    box-shadow:
+      0 0 35px rgba(255,0,70,1),
+      0 0 90px rgba(255,0,70,.8),
+      0 0 160px rgba(255,0,70,.45);
   }
-}/* INPUT */
+}
+
+/* INPUT */
 
 .input-zone{
   padding:12px 16px 16px;
