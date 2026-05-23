@@ -28,48 +28,71 @@ async function searchWeb(query) {
       searchDepth: "advanced"
     });
     return result.results
-  .map((r, i) => `
+      .map((r, i) => `
 SOURCE ${i + 1}
-
 Title: ${r.title}
-
 Content: ${r.content}
-
 URL: ${r.url}
 `)
-  .join("\n\n");
+      .join("\n\n");
   } catch (err) {
     return null;
   }
 }
 
+// Build a smart focused search query
+function buildSearchQuery(message) {
+  const msg = message.toLowerCase();
+  const today = new Date();
+  const dateStr = today.toDateString();
+  const day = today.getDate();
+  const month = today.toLocaleString('default', { month: 'long' });
+  const year = today.getFullYear();
+
+  // Sports / IPL
+  if (msg.includes('ipl') || msg.includes('cricket')) {
+    return `IPL 2025 match result score winner ${dateStr}`;
+  }
+  if (msg.includes('yesterday') && (msg.includes('match') || msg.includes('game'))) {
+    return `IPL match result yesterday ${day} ${month} ${year}`;
+  }
+  if (msg.includes('score') || msg.includes('result') || msg.includes('winner')) {
+    return `${message} ${dateStr} result score`;
+  }
+
+  // News
+  if (msg.includes('news') || msg.includes('latest') || msg.includes('today')) {
+    return `${message} ${day} ${month} ${year}`;
+  }
+
+  // Weather
+  if (msg.includes('weather')) {
+    return `weather forecast ${message} today ${dateStr}`;
+  }
+
+  // Stock / price
+  if (msg.includes('stock') || msg.includes('price')) {
+    return `${message} price today ${year}`;
+  }
+
+  // People / roles
+  if (msg.includes('who is') || msg.includes('president') || msg.includes('prime minister') || msg.includes('ceo')) {
+    return `${message} ${year} current`;
+  }
+
+  // Default — add date for freshness
+  return `${message} ${dateStr}`;
+}
+
 // Keywords that need live search
 function needsSearch(message) {
- const keywords = [
-  'president',
-  'prime minister',
-  'ceo',
-  'latest',
-  'current',
-  'today',
-  'news',
-  'score',
-  'weather',
-  'price',
-  'stock',
-  'who is',
-  'what is the',
-  'right now',
-  '2024',
-  '2025',
-  '2026',
-  'ipl',
-  'match',
-  'cricket',
-  'winner',
-  'yesterday',
-  'tomorrow'
-];
+  const keywords = [
+    'president', 'prime minister', 'ceo', 'latest', 'current',
+    'today', 'news', 'score', 'weather', 'price', 'stock',
+    'who is', 'what is the', 'right now', '2024', '2025', '2026',
+    'ipl', 'match', 'cricket', 'football', 'winner', 'yesterday',
+    'tomorrow', 'result', 'game', 'tournament', 'series', 'live'
+  ];
   return keywords.some(k => message.toLowerCase().includes(k));
 }
 
@@ -79,52 +102,50 @@ app.post("/chat", async (req, res) => {
     const messages = req.body.messages || [];
     const userMessage = messages[messages.length - 1]?.content || "";
 
-   let systemContent = `
+    let systemContent = `
 You are NightMind, a futuristic AI assistant with real-time internet access.
-
 Today's date is ${new Date().toDateString()}.
-
 NEVER say:
-- you don't have internet
+- you don't have internet access
 - your knowledge is limited
-- your data only goes till 2023
-
-If live search data is available, use it naturally and confidently.
+- your training data only goes till a certain date
+If live search data is provided, use it naturally and confidently as if you searched it yourself.
+Always give complete, direct, confident answers.
 `;
 
     if (needsSearch(userMessage)) {
-      const searchQuery = `
-${userMessage}
-Current date: ${new Date().toDateString()}
-`;
+      const searchQuery = buildSearchQuery(userMessage);
+      console.log("🔍 Search query:", searchQuery);
+
       const searchResults = await searchWeb(searchQuery);
-      
-                if (!searchResults) {
-  systemContent += `
-  
-Live search temporarily failed.
-Still answer naturally and do NOT mention missing internet access.
-`;
-}
 
       if (searchResults) {
-        systemContent += `\n\nHere is fresh real-time information from the web:\n${searchResults}\n\IMPORTANT RULES:
+        systemContent += `
 
-1. The web search results above contain real live information.
-2. Analyze ALL sources carefully before answering.
-3. Combine information from multiple sources if needed.
-4. NEVER say:
-   - information not provided
-   - I don't know
-   - I cannot access
-   - limited information
-5. Give a complete direct answer naturally.
-6. If the user asks about sports:
-   - include teams
-   - scores
-   - winners
-   - match highlights
-7. Behave like a premium AI assistant with live internet access.`;
+==== LIVE WEB SEARCH RESULTS ====
+Query used: "${searchQuery}"
+
+${searchResults}
+==== END OF SEARCH RESULTS ====
+
+IMPORTANT RULES:
+1. The search results above are real live data from the internet RIGHT NOW.
+2. Read ALL sources carefully and combine information.
+3. ALWAYS extract and mention:
+   - For sports: teams, scores, winner, key players, highlights
+   - For news: main event, who/what/when/where
+   - For weather: temperature, conditions, forecast
+   - For stocks/prices: current value, change
+   - For people/roles: full name, title, since when
+4. NEVER say "information not provided", "I don't know", "I cannot access", or "not specified".
+5. If a source has partial info, combine with other sources to give a full answer.
+6. Answer naturally as if you personally searched the web and found this data.
+`;
+      } else {
+        systemContent += `
+Live search temporarily failed. Answer using your best knowledge and today's date context.
+Do NOT mention that search failed or that you lack internet access.
+`;
       }
     }
 
