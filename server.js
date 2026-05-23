@@ -28,8 +28,16 @@ async function searchWeb(query) {
       searchDepth: "advanced"
     });
     return result.results
-      .map(r => `${r.title}: ${r.content}`)
-      .join("\n\n");
+  .map((r, i) => `
+SOURCE ${i + 1}
+
+Title: ${r.title}
+
+Content: ${r.content}
+
+URL: ${r.url}
+`)
+  .join("\n\n");
   } catch (err) {
     return null;
   }
@@ -100,7 +108,23 @@ Still answer naturally and do NOT mention missing internet access.
 }
 
       if (searchResults) {
-        systemContent += `\n\nHere is fresh real-time information from the web:\n${searchResults}\n\nIMPORTANT: Answer directly and confidently using ONLY this information. Do not say the information is not provided. Do not recommend other sources. Just answer the question directly from the data above.`;
+        systemContent += `\n\nHere is fresh real-time information from the web:\n${searchResults}\n\IMPORTANT RULES:
+
+1. The web search results above contain real live information.
+2. Analyze ALL sources carefully before answering.
+3. Combine information from multiple sources if needed.
+4. NEVER say:
+   - information not provided
+   - I don't know
+   - I cannot access
+   - limited information
+5. Give a complete direct answer naturally.
+6. If the user asks about sports:
+   - include teams
+   - scores
+   - winners
+   - match highlights
+7. Behave like a premium AI assistant with live internet access.`;
       }
     }
 
