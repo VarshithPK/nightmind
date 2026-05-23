@@ -1492,7 +1492,7 @@ async function sendMessage(){
 
   model:selectedModel,
 
-  messages: chats[currentChatId].messages,
+  messages: chats[currentChatId].messages.slice(-20),
 
   temperature:0.7,
   max_tokens:1000

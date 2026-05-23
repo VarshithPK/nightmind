@@ -37,11 +37,31 @@ async function searchWeb(query) {
 
 // Keywords that need live search
 function needsSearch(message) {
-  const keywords = [
-    'president', 'prime minister', 'ceo', 'latest', 'current',
-    'today', 'news', 'score', 'weather', 'price', 'stock',
-    'who is', 'what is the', 'right now', '2024', '2025', '2026'
-  ];
+ const keywords = [
+  'president',
+  'prime minister',
+  'ceo',
+  'latest',
+  'current',
+  'today',
+  'news',
+  'score',
+  'weather',
+  'price',
+  'stock',
+  'who is',
+  'what is the',
+  'right now',
+  '2024',
+  '2025',
+  '2026',
+  'ipl',
+  'match',
+  'cricket',
+  'winner',
+  'yesterday',
+  'tomorrow'
+];
   return keywords.some(k => message.toLowerCase().includes(k));
 }
 
@@ -51,11 +71,34 @@ app.post("/chat", async (req, res) => {
     const messages = req.body.messages || [];
     const userMessage = messages[messages.length - 1]?.content || "";
 
-    let systemContent = `You are NightMind, a futuristic AI assistant. Today's date is ${new Date().toDateString()}.`;
+   let systemContent = `
+You are NightMind, a futuristic AI assistant with real-time internet access.
+
+Today's date is ${new Date().toDateString()}.
+
+NEVER say:
+- you don't have internet
+- your knowledge is limited
+- your data only goes till 2023
+
+If live search data is available, use it naturally and confidently.
+`;
 
     if (needsSearch(userMessage)) {
-      const searchQuery = userMessage + " " + new Date().getFullYear();
+      const searchQuery = `
+${userMessage}
+Current date: ${new Date().toDateString()}
+`;
       const searchResults = await searchWeb(searchQuery);
+      
+                if (!searchResults) {
+  systemContent += `
+  
+Live search temporarily failed.
+Still answer naturally and do NOT mention missing internet access.
+`;
+}
+
       if (searchResults) {
         systemContent += `\n\nHere is fresh real-time information from the web:\n${searchResults}\n\nIMPORTANT: Answer directly and confidently using ONLY this information. Do not say the information is not provided. Do not recommend other sources. Just answer the question directly from the data above.`;
       }
