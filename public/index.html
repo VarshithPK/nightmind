@@ -304,8 +304,12 @@ if(voiceSupported){
   };
 
   recognition.onend = () => {
-    if(isListening) stopListening();
-  };
+  // If still supposed to be listening, restart it
+  // This handles browser auto-stopping
+  if(isListening){
+    try{ recognition.start(); } catch(e){}
+  }
+};
 }
 
 function toggleVoice(){
@@ -338,7 +342,7 @@ function startListening(){
 function stopListening(){
   isListening = false;
   clearTimeout(window._voiceTimer);
-  try{ recognition.stop(); } catch(e){}
+  try{ recognition.abort(); } catch(e){}
   setOrbState('idle');
   chatInput.placeholder = 'Message NightMind... (or click 🎤 to speak)';
 }
