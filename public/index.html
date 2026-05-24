@@ -520,6 +520,9 @@ async function sendMessage(){
     const wasVoice = !!window._lastInputWasVoice;
     window._lastInputWasVoice = false;
     let i = 0;
+       if(wasVoice){
+  speakReply(reply);
+}
       async function type(){
       if(i < reply.length){ aiDiv.textContent += reply[i]; i++; messages.scrollTop = messages.scrollHeight; setTimeout(type, 7); }
       else { saveMessage('assistant', reply); if (
@@ -533,7 +536,7 @@ async function sendMessage(){
   chats[currentChatId].title = smartTitle;
   saveChats();
   renderHistory();
-}isBusy = false; if(wasVoice) speakReply(reply); }
+}isBusy = false; }
     }
     type();
   } catch(err){
