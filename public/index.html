@@ -352,21 +352,55 @@ function setOrbState(state){
 }
 
 /* Speak AI reply */
+let currentUtterance = null;
+
 function speakReply(text){
+
   if(!window.speechSynthesis) return;
+
+  // STOP OLD SPEECH
   window.speechSynthesis.cancel();
-  const clean = text.replace(/\*\*/g,'').replace(/\*/g,'').replace(/#{1,6} /g,'').replace(/`/g,'').slice(0,800);
-  const utterance = new SpeechSynthesisUtterance(clean);
-  utterance.rate = 1.05; utterance.pitch = 1; utterance.volume = 1;
-  const voices = window.speechSynthesis.getVoices();
-  const preferred = voices.find(v => v.name.includes('Google') || v.name.includes('Samantha') || v.lang === 'en-US');
-  if(preferred) utterance.voice = preferred;
-  utterance.onstart = () => { isSpeaking = true; setOrbState('speaking'); };
-  utterance.onend = () => { isSpeaking = false; setOrbState('idle'); };
-  utterance.onerror = () => { isSpeaking = false; setOrbState('idle'); };
-  window.speechSynthesis.speak(utterance);
-}
-window.speechSynthesis && (window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices());
+
+  isSpeaking = true;
+  setOrbState('speaking');
+
+  const clean = text
+    .replace(/\*\*/g,'')
+    .replace(/\*/g,'')
+    .replace(/#{1,6} /g,'')
+    .replace(/`/g,'');
+
+  currentUtterance = new SpeechSynthesisUtterance(clean);
+
+  currentUtterance.rate = 1;
+  currentUtterance.pitch = 1;
+  currentUtterance.volume = 1;
+  currentUtterance.lang = 'en-US';
+
+  // BETTER MOBILE VOICE SELECTION
+  const voices = speechSynthesis.getVoices();
+
+  const preferred =
+    voices.find(v => v.lang.includes('en-US')) ||
+    voices.find(v => v.lang.includes('en')) ||
+    voices[0];
+
+  if(preferred){
+    currentUtterance.voice = preferred;
+  }
+
+  currentUtterance.onend = () => {
+    isSpeaking = false;
+    setOrbState('idle');
+  };
+
+  currentUtterance.onerror = () => {
+    isSpeaking = false;
+    setOrbState('idle');
+  };
+
+  speechSynthesis.speak(currentUtterance);
+}window.speechSynthesis && (window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices());
 
 /* =========================
    INPUT
@@ -523,21 +557,107 @@ const wasVoice = !!window._lastInputWasVoice;
 window._lastInputWasVoice = false;
 
 let i = 0;
+let spokenChunk = '';
+let currentlySpeaking = false;
 
-// START SPEAKING IMMEDIATELY
-if(wasVoice){
-  setTimeout(() => {
-    speakReply(reply);
-  }, 100);
+/* ========= SPEAK FUNCTION ========= */
+function speakChunk(text){
+
+  if(!window.speechSynthesis) return;
+
+  const clean = text
+    .replace(/\*\*/g,'')
+    .replace(/\*/g,'')
+    .replace(/#{1,6} /g,'')
+    .replace(/`/g,'');
+
+  const utter = new SpeechSynthesisUtterance(clean);
+
+  utter.rate = 1;
+  utter.pitch = 1;
+  utter.volume = 1;
+  utter.lang = 'en-US';
+
+  const voices = speechSynthesis.getVoices();
+
+  const preferred =
+    voices.find(v => v.lang.includes('en-US')) ||
+    voices.find(v => v.lang.includes('en')) ||
+    voices[0];
+
+  if(preferred){
+    utter.voice = preferred;
+  }
+
+  currentlySpeaking = true;
+  isSpeaking = true;
+  setOrbState('speaking');
+
+  utter.onend = () => {
+    currentlySpeaking = false;
+
+    // if nothing else queued
+    if(!speechSynthesis.speaking){
+      isSpeaking = false;
+      setOrbState('idle');
+    }
+  };
+
+  utter.onerror = () => {
+    currentlySpeaking = false;
+    isSpeaking = false;
+    setOrbState('idle');
+  };
+
+  speechSynthesis.speak(utter);
 }
 
+/* ========= STOP SPEAKING ========= */
+function stopSpeaking(){
+
+  speechSynthesis.cancel();
+
+  currentlySpeaking = false;
+  isSpeaking = false;
+
+  setOrbState('idle');
+}
+
+/* ========= TYPE EFFECT ========= */
 function type(){
+
   if(i < reply.length){
+
     aiDiv.textContent += reply[i];
-    i++;
+    spokenChunk += reply[i];
+
     messages.scrollTop = messages.scrollHeight;
+
+    // SPEAK EACH SENTENCE LIVE
+    if(
+      wasVoice &&
+      (
+        reply[i] === '.' ||
+        reply[i] === '?' ||
+        reply[i] === '!' ||
+        spokenChunk.length > 120
+      )
+    ){
+
+      speakChunk(spokenChunk);
+      spokenChunk = '';
+    }
+
+    i++;
+
     setTimeout(type, 7);
+
   } else {
+
+    // SPEAK REMAINING TEXT
+    if(wasVoice && spokenChunk.trim()){
+      speakChunk(spokenChunk);
+    }
 
     saveMessage('assistant', reply);
 
@@ -545,10 +665,13 @@ function type(){
       chats[currentChatId] &&
       chats[currentChatId].messages.length <= 2
     ){
+
       generateChatTitle(
         chats[currentChatId].messages
       ).then(smartTitle => {
+
         chats[currentChatId].title = smartTitle;
+
         saveChats();
         renderHistory();
       });
@@ -573,6 +696,25 @@ setTimeout(() => {
   if(ids.length > 0){ currentChatId = ids[ids.length-1]; renderHistory(); loadChat(currentChatId); }
   else renderHistory();
 }, 100);
+// MOBILE VOICE FIX
+window.addEventListener('click', () => {
+  speechSynthesis.resume();
+});
+
+// STOP SPEAKING WHEN ORB CLICKED
+function toggleRecording(){
+
+  if(isSpeaking){
+    stopSpeaking();
+    return;
+  }
+
+  if(isRecording){
+    stopRecording();
+  } else {
+    startRecording();
+  }
+}
 </script>
 </body>
 </html>
