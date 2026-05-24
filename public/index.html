@@ -7,49 +7,26 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --red:#ef233c;
-  --red2:#ff4d6d;
-  --bg:#050505;
-  --bg-sidebar:rgba(10,10,10,.78);
-  --bg-topbar:rgba(0,0,0,.45);
-  --bg-input-zone:rgba(0,0,0,.45);
-  --bg-msg-ai:rgba(255,255,255,.035);
-  --bg-input:rgba(255,255,255,.04);
-  --border:rgba(255,255,255,.08);
-  --border2:rgba(255,255,255,.06);
-  --text:#fff;
-  --text2:#d4d4d4;
-  --muted:#777;
-  --placeholder:#555;
+  --red:#ef233c;--red2:#ff4d6d;--bg:#050505;
+  --bg-sidebar:rgba(10,10,10,.78);--bg-topbar:rgba(0,0,0,.45);
+  --bg-input-zone:rgba(0,0,0,.45);--bg-msg-ai:rgba(255,255,255,.035);
+  --bg-input:rgba(255,255,255,.04);--border:rgba(255,255,255,.08);
+  --border2:rgba(255,255,255,.06);--text:#fff;--text2:#d4d4d4;
+  --muted:#777;--placeholder:#555;
   --shadow-red:0 0 30px rgba(239,35,60,.6),0 0 80px rgba(239,35,60,.25);
 }
 body.light{
-  --bg:#f4f6fb;
-  --bg-sidebar:rgba(255,255,255,.75);
-  --bg-topbar:rgba(255,255,255,.7);
-  --bg-input-zone:rgba(255,255,255,.75);
-  --bg-msg-ai:rgba(0,0,0,.04);
-  --bg-input:rgba(0,0,0,.04);
-  --border:rgba(0,0,0,.08);
-  --border2:rgba(0,0,0,.06);
-  --text:#111;
-  --text2:#333;
-  --muted:#777;
-  --placeholder:#999;
+  --bg:#f4f6fb;--bg-sidebar:rgba(255,255,255,.75);
+  --bg-topbar:rgba(255,255,255,.7);--bg-input-zone:rgba(255,255,255,.75);
+  --bg-msg-ai:rgba(0,0,0,.04);--bg-input:rgba(0,0,0,.04);
+  --border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.06);
+  --text:#111;--text2:#333;--muted:#777;--placeholder:#999;
   --shadow-red:0 0 25px rgba(239,35,60,.25),0 0 60px rgba(239,35,60,.1);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{width:100%;height:100%;overflow:hidden;}
 body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;transition:.3s ease;}
-.aurora{
-  position:fixed;inset:0;z-index:-2;
-  background:
-    radial-gradient(circle at 20% 20%,rgba(239,35,60,.22),transparent 30%),
-    radial-gradient(circle at 80% 30%,rgba(0,120,255,.15),transparent 30%),
-    radial-gradient(circle at 50% 80%,rgba(255,0,170,.12),transparent 30%);
-  filter:blur(80px);
-  animation:auroraMove 12s infinite alternate ease-in-out;
-}
+.aurora{position:fixed;inset:0;z-index:-2;background:radial-gradient(circle at 20% 20%,rgba(239,35,60,.22),transparent 30%),radial-gradient(circle at 80% 30%,rgba(0,120,255,.15),transparent 30%),radial-gradient(circle at 50% 80%,rgba(255,0,170,.12),transparent 30%);filter:blur(80px);animation:auroraMove 12s infinite alternate ease-in-out;}
 @keyframes auroraMove{from{transform:translateY(-20px) scale(1);}to{transform:translateY(20px) scale(1.1);}}
 .app{display:flex;height:100vh;width:100%;}
 .sidebar{width:270px;min-width:270px;height:100vh;background:var(--bg-sidebar);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;transition:.3s ease;}
@@ -98,12 +75,15 @@ body.light .toggle-thumb{transform:translateX(20px);background:var(--red);}
 .ai-orb:hover{transform:scale(1.07) translateY(-4px);box-shadow:0 0 50px rgba(255,0,70,1),0 0 120px rgba(255,0,70,.5);}
 .ai-orb::before{content:'';position:absolute;inset:-20%;border-radius:50%;background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.18),transparent 60%),radial-gradient(circle at 30% 30%,rgba(255,255,255,.12),transparent 40%);filter:blur(10px);animation:energyFlow 6s ease-in-out infinite alternate;}
 .ai-orb::after{content:'';position:absolute;inset:12px;border-radius:50%;background:radial-gradient(circle at 40% 35%,rgba(255,255,255,.45),transparent 45%);}
-.ai-orb.listening{animation:orbListening 0.8s ease-in-out infinite !important;box-shadow:0 0 60px rgba(255,0,70,1),0 0 150px rgba(255,0,70,.7),0 0 200px rgba(255,0,70,.3) !important;}
-@keyframes orbListening{0%,100%{transform:scale(1.12);}50%{transform:scale(1.18);}}
+.ai-orb.recording{animation:orbListening 0.6s ease-in-out infinite !important;box-shadow:0 0 60px rgba(255,0,70,1),0 0 150px rgba(255,0,70,.7) !important;}
+@keyframes orbListening{0%,100%{transform:scale(1.1);}50%{transform:scale(1.18);}}
+.ai-orb.processing{animation:orbProcessing 1s ease-in-out infinite !important;box-shadow:0 0 40px rgba(255,165,0,.9),0 0 100px rgba(255,165,0,.4) !important;background:radial-gradient(circle at 30% 30%,#ffe8b8 0%,#ffb84d 15%,#ef8c23 35%,#663800 100%) !important;}
+@keyframes orbProcessing{0%,100%{transform:scale(1.05);}50%{transform:scale(1.1);}}
 .ai-orb.speaking{animation:orbSpeaking 0.5s ease-in-out infinite !important;box-shadow:0 0 40px rgba(0,150,255,.9),0 0 100px rgba(0,150,255,.4) !important;background:radial-gradient(circle at 30% 30%,#b8d4ff 0%,#4d9fff 15%,#2369ef 35%,#001466 100%) !important;}
 @keyframes orbSpeaking{0%,100%{transform:scale(1.08);}50%{transform:scale(1.14);}}
 .orb-status{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:0.5px;height:18px;transition:color .3s;}
-.orb-status.listening{color:var(--red);}
+.orb-status.recording{color:var(--red);}
+.orb-status.processing{color:#ffb84d;}
 .orb-status.speaking{color:#4d9fff;}
 .orb-ripples{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:120px;height:120px;border-radius:50%;pointer-events:none;z-index:-1;}
 .orb-ripples span{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(239,35,60,.5);opacity:0;animation:ripple 2s ease-out infinite;}
@@ -111,7 +91,6 @@ body.light .toggle-thumb{transform:translateX(20px);background:var(--red);}
 .orb-ripples span:nth-child(3){animation-delay:1s;}
 @keyframes ripple{0%{transform:scale(1);opacity:.6;}100%{transform:scale(2.2);opacity:0;}}
 .orb-ripples.hidden span{animation:none;opacity:0;}
-.voice-unsupported{font-size:11px;color:#ff9500;background:rgba(255,149,0,.1);border:1px solid rgba(255,149,0,.3);border-radius:20px;padding:4px 12px;margin-top:-4px;display:none;}
 @keyframes orbFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
 @keyframes orbPulse{0%,100%{box-shadow:0 0 35px rgba(255,0,70,.85),0 0 100px rgba(255,0,70,.35);}50%{box-shadow:0 0 45px rgba(255,0,70,1),0 0 130px rgba(255,0,70,.5);}}
 @keyframes energyFlow{0%{transform:rotate(0deg) scale(1);}100%{transform:rotate(25deg) scale(1.08);}}
@@ -152,7 +131,6 @@ body.light .toggle-thumb{transform:translateX(20px);background:var(--red);}
 <div class="aurora"></div>
 <div class="app">
   <div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
-
   <div class="sidebar" id="sidebar">
     <div class="sidebar-top">
       <div class="logo-wrap">
@@ -184,9 +162,7 @@ body.light .toggle-thumb{transform:translateX(20px);background:var(--red);}
   <div class="chat-zone">
     <div class="topbar">
       <div class="topbar-left">
-        <div class="hamburger" onclick="openSidebar()">
-          <span></span><span></span><span></span>
-        </div>
+        <div class="hamburger" onclick="openSidebar()"><span></span><span></span><span></span></div>
         <div class="live-dot"></div>
         <div class="online-text">ONLINE</div>
       </div>
@@ -201,14 +177,9 @@ body.light .toggle-thumb{transform:translateX(20px);background:var(--red);}
     <div id="messages">
       <div id="welcome">
         <div class="orb-wrap">
-          <div class="ai-orb" id="mainOrb" onclick="toggleVoice()" title="Click to talk"></div>
-          <div class="orb-ripples hidden" id="orbRipples">
-            <span></span><span></span><span></span>
-          </div>
+          <div class="ai-orb" id="mainOrb" onclick="toggleRecording()" title="Click to talk"></div>
+          <div class="orb-ripples hidden" id="orbRipples"><span></span><span></span><span></span></div>
           <div class="orb-status" id="orbStatus">Click orb to speak</div>
-          <div class="voice-unsupported" id="voiceUnsupported">
-            ⚠ Voice requires Arc, Brave, Opera or Chrome
-          </div>
         </div>
         <h1 class="welcome-title">What's on your mind?</h1>
         <p class="welcome-sub">NightMind powered by Groq AI. Click the orb to talk or type below.</p>
@@ -223,14 +194,9 @@ body.light .toggle-thumb{transform:translateX(20px);background:var(--red);}
 
     <div class="input-zone">
       <div class="input-wrap">
-        <textarea
-          id="chat-input"
-          class="chat-input"
-          placeholder="Message NightMind... (or click 🎤 to speak)"
-          onkeydown="handleEnter(event)"
-        ></textarea>
+        <textarea id="chat-input" class="chat-input" placeholder="Message NightMind... (or click 🎤 to speak)" onkeydown="handleEnter(event)"></textarea>
         <div class="input-btns">
-          <button class="mic-btn" id="micBtn" onclick="toggleVoice()" title="Voice input">🎤</button>
+          <button class="mic-btn" id="micBtn" onclick="toggleRecording()" title="Voice input">🎤</button>
           <button class="send-btn" onclick="sendMessage()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>
@@ -242,109 +208,110 @@ body.light .toggle-thumb{transform:translateX(20px);background:var(--red);}
 
 <script>
 /* =========================
-   VOICE AGENT
+   MEDIA RECORDER VOICE
 ========================= */
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-let recognition = null;
-let isListening = false;
+let mediaRecorder = null;
+let audioChunks = [];
+let isRecording = false;
 let isSpeaking = false;
-let voiceSupported = !!SpeechRecognition;
+let mediaStream = null;
 
-if(!voiceSupported){
-  document.getElementById('voiceUnsupported').style.display = 'block';
-  document.getElementById('orbStatus').textContent = 'Voice not supported in this browser';
-  document.getElementById('micBtn').disabled = true;
-  document.getElementById('micBtn').style.opacity = '0.4';
-}
-
-if(voiceSupported){
-  recognition = new SpeechRecognition();
-  recognition.continuous = true;
-  recognition.interimResults = true;
-  recognition.lang = 'en-US';
-
-  recognition.onstart = () => {
-    isListening = true;
-    setOrbState('listening');
-  };
-
-  recognition.onresult = (e) => {
-    let interimTranscript = '';
-    let finalTranscript = '';
-
-    for(let i = e.resultIndex; i < e.results.length; i++){
-      const transcript = e.results[i][0].transcript;
-      if(e.results[i].isFinal){
-        finalTranscript += transcript;
-      } else {
-        interimTranscript += transcript;
-      }
-    }
-
-    // Show live text as user speaks
-    chatInput.value = finalTranscript || interimTranscript;
-
-    // Wait 1.5s of silence after final result before sending
-    if(finalTranscript.trim()){
-      clearTimeout(window._voiceTimer);
-      window._voiceTimer = setTimeout(() => {
-        stopListening();
-        window._lastInputWasVoice = true;
-        sendMessage();
-      }, 1500);
-    }
-  };
-
-  recognition.onerror = (e) => {
-    stopListening();
-    if(e.error === 'not-allowed'){
-      setOrbState('idle');
-      document.getElementById('orbStatus').textContent = '⚠ Microphone blocked — allow mic access';
-    }
-  };
-
-  recognition.onend = () => {
-  // If still supposed to be listening, restart it
-  // This handles browser auto-stopping
-  if(isListening){
-    try{ recognition.start(); } catch(e){}
-  }
-};
-}
-
-function toggleVoice(){
-  if(!voiceSupported){
-    alert('Voice requires a Chromium browser: Arc, Brave, Opera or Chrome.');
-    return;
-  }
+async function toggleRecording(){
   if(isSpeaking){
-    window.speechSynthesis.cancel();
+    window.speechSynthesis && window.speechSynthesis.cancel();
     isSpeaking = false;
     setOrbState('idle');
     return;
   }
-  if(isListening){
-    stopListening();
+  if(isRecording){
+    stopRecording();
   } else {
-    startListening();
+    await startRecording();
   }
 }
 
-function startListening(){
-  if(!voiceSupported) return;
-  try{
-    recognition.start();
-    chatInput.value = '';
-    chatInput.placeholder = 'Listening...';
-  } catch(e){}
+async function startRecording(){
+  try {
+    mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioChunks = [];
+
+    // Pick best supported format
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+      ? 'audio/webm;codecs=opus'
+      : MediaRecorder.isTypeSupported('audio/webm')
+      ? 'audio/webm'
+      : 'audio/ogg';
+
+    mediaRecorder = new MediaRecorder(mediaStream, { mimeType });
+
+    mediaRecorder.ondataavailable = (e) => {
+      if(e.data.size > 0) audioChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = async () => {
+      // Stop all mic tracks
+      mediaStream.getTracks().forEach(t => t.stop());
+      setOrbState('processing');
+      await transcribeAudio();
+    };
+
+    mediaRecorder.start(100); // collect data every 100ms
+    isRecording = true;
+    setOrbState('recording');
+
+  } catch(err){
+    if(err.name === 'NotAllowedError'){
+      alert('Microphone access blocked! Please allow microphone in your browser settings.');
+    } else {
+      alert('Could not access microphone: ' + err.message);
+    }
+  }
 }
 
-function stopListening(){
-  isListening = false;
-  clearTimeout(window._voiceTimer);
-  try{ recognition.abort(); } catch(e){}
-  setOrbState('idle');
-  chatInput.placeholder = 'Message NightMind... (or click 🎤 to speak)';
+function stopRecording(){
+  if(mediaRecorder && mediaRecorder.state !== 'inactive'){
+    isRecording = false;
+    mediaRecorder.stop();
+  }
+}
+
+async function transcribeAudio(){
+  try {
+    const blob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
+
+    // Check if audio is too short (less than 0.5s ≈ 5000 bytes)
+    if(blob.size < 5000){
+      setOrbState('idle');
+      document.getElementById('orbStatus').textContent = 'Too short — try again';
+      setTimeout(() => setOrbState('idle'), 2000);
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('audio', blob, 'audio.webm');
+
+    const res = await fetch('/transcribe', {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await res.json();
+
+    if(data.text && data.text.trim()){
+      chatInput.value = data.text.trim();
+      setOrbState('idle');
+      window._lastInputWasVoice = true;
+      sendMessage();
+    } else {
+      setOrbState('idle');
+      document.getElementById('orbStatus').textContent = "Couldn't hear you — try again";
+      setTimeout(() => setOrbState('idle'), 2000);
+    }
+  } catch(err){
+    setOrbState('idle');
+    document.getElementById('orbStatus').textContent = '⚠ Transcription failed';
+    setTimeout(() => setOrbState('idle'), 2000);
+  }
 }
 
 function setOrbState(state){
@@ -354,54 +321,52 @@ function setOrbState(state){
   const micBtn = document.getElementById('micBtn');
   if(!orb) return;
 
-  orb.classList.remove('listening','speaking');
-  status.classList.remove('listening','speaking');
+  orb.classList.remove('recording','processing','speaking');
+  status.classList.remove('recording','processing','speaking');
   ripples.classList.add('hidden');
   micBtn.classList.remove('active');
 
-  if(state === 'listening'){
-    orb.classList.add('listening');
-    status.classList.add('listening');
-    status.textContent = '🔴 Listening... speak now';
+  if(state === 'recording'){
+    orb.classList.add('recording');
+    status.classList.add('recording');
+    status.textContent = '🔴 Recording... click to stop';
     ripples.classList.remove('hidden');
     micBtn.classList.add('active');
     micBtn.textContent = '⏹';
+    chatInput.placeholder = 'Recording...';
+  } else if(state === 'processing'){
+    orb.classList.add('processing');
+    status.classList.add('processing');
+    status.textContent = '⏳ Transcribing...';
+    micBtn.textContent = '⏳';
   } else if(state === 'speaking'){
     orb.classList.add('speaking');
     status.classList.add('speaking');
     status.textContent = '🔊 Speaking... click to stop';
     micBtn.textContent = '⏹';
   } else {
-    status.textContent = voiceSupported ? 'Click orb to speak' : 'Voice not supported';
+    status.textContent = 'Click orb to speak';
     micBtn.textContent = '🎤';
+    chatInput.placeholder = 'Message NightMind... (or click 🎤 to speak)';
   }
 }
 
+/* Speak AI reply */
 function speakReply(text){
   if(!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
-  const clean = text
-    .replace(/\*\*/g,'').replace(/\*/g,'')
-    .replace(/#{1,6} /g,'').replace(/`/g,'')
-    .slice(0, 800);
+  const clean = text.replace(/\*\*/g,'').replace(/\*/g,'').replace(/#{1,6} /g,'').replace(/`/g,'').slice(0,800);
   const utterance = new SpeechSynthesisUtterance(clean);
-  utterance.rate = 1.05;
-  utterance.pitch = 1;
-  utterance.volume = 1;
+  utterance.rate = 1.05; utterance.pitch = 1; utterance.volume = 1;
   const voices = window.speechSynthesis.getVoices();
-  const preferred = voices.find(v =>
-    v.name.includes('Google') || v.name.includes('Samantha') ||
-    v.name.includes('Daniel') || v.lang === 'en-US'
-  );
+  const preferred = voices.find(v => v.name.includes('Google') || v.name.includes('Samantha') || v.lang === 'en-US');
   if(preferred) utterance.voice = preferred;
   utterance.onstart = () => { isSpeaking = true; setOrbState('speaking'); };
   utterance.onend = () => { isSpeaking = false; setOrbState('idle'); };
   utterance.onerror = () => { isSpeaking = false; setOrbState('idle'); };
   window.speechSynthesis.speak(utterance);
 }
-
-window.speechSynthesis && window.speechSynthesis.getVoices();
-window.speechSynthesis && (window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); });
+window.speechSynthesis && (window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices());
 
 /* =========================
    INPUT
@@ -415,38 +380,21 @@ function handleEnter(e){
   if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); }
 }
 
-/* =========================
-   THEME
-========================= */
+/* THEME */
 let isLight = localStorage.getItem('nightmind_theme') === 'light';
 function applyTheme(){ document.body.classList.toggle('light', isLight); }
-function toggleTheme(){
-  isLight = !isLight;
-  localStorage.setItem('nightmind_theme', isLight ? 'light' : 'dark');
-  applyTheme();
-}
+function toggleTheme(){ isLight = !isLight; localStorage.setItem('nightmind_theme', isLight ? 'light' : 'dark'); applyTheme(); }
 applyTheme();
 
-/* =========================
-   SIDEBAR
-========================= */
-function openSidebar(){
-  document.getElementById('sidebar').classList.add('open');
-  document.getElementById('overlay').classList.add('show');
-}
-function closeSidebar(){
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('overlay').classList.remove('show');
-}
+/* SIDEBAR */
+function openSidebar(){ document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('show'); }
+function closeSidebar(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show'); }
 window.addEventListener('resize', () => { if(window.innerWidth > 768) closeSidebar(); });
 
-/* =========================
-   CHAT STORAGE
-========================= */
+/* CHAT STORAGE */
 let currentChatId = null;
 let chats = JSON.parse(localStorage.getItem('nightmind_chats')) || {};
 function saveChats(){ localStorage.setItem('nightmind_chats', JSON.stringify(chats)); }
-
 function renderHistory(){
   const history = document.getElementById('history');
   history.innerHTML = '';
@@ -458,26 +406,18 @@ function renderHistory(){
     history.appendChild(item);
   });
 }
-
 function createChat(firstMessage='New Chat'){
   currentChatId = 'chat_' + Date.now();
-  chats[currentChatId] = {
-    title: firstMessage.length > 30 ? firstMessage.substring(0,30) + '...' : firstMessage,
-    messages:[]
-  };
-  saveChats();
-  renderHistory();
+  chats[currentChatId] = { title: firstMessage.length > 30 ? firstMessage.substring(0,30)+'...' : firstMessage, messages:[] };
+  saveChats(); renderHistory();
 }
-
 function saveMessage(role, content){
   if(!currentChatId) createChat(content);
   chats[currentChatId].messages.push({ role, content });
   saveChats();
 }
-
 function loadChat(chatId){
-  currentChatId = chatId;
-  renderHistory();
+  currentChatId = chatId; renderHistory();
   const messages = document.getElementById('messages');
   messages.innerHTML = '';
   chats[chatId].messages.forEach(msg => {
@@ -488,17 +428,12 @@ function loadChat(chatId){
   });
   messages.scrollTop = messages.scrollHeight;
 }
-
 function buildWelcomeHTML(){
-  return `
-  <div id="welcome">
+  return `<div id="welcome">
     <div class="orb-wrap">
-      <div class="ai-orb" id="mainOrb" onclick="toggleVoice()" title="Click to talk"></div>
-      <div class="orb-ripples hidden" id="orbRipples">
-        <span></span><span></span><span></span>
-      </div>
-      <div class="orb-status" id="orbStatus">${voiceSupported ? 'Click orb to speak' : 'Voice not supported'}</div>
-      ${!voiceSupported ? '<div class="voice-unsupported" style="display:block">⚠ Voice requires Arc, Brave, Opera or Chrome</div>' : ''}
+      <div class="ai-orb" id="mainOrb" onclick="toggleRecording()" title="Click to talk"></div>
+      <div class="orb-ripples hidden" id="orbRipples"><span></span><span></span><span></span></div>
+      <div class="orb-status" id="orbStatus">Click orb to speak</div>
     </div>
     <h1 class="welcome-title">What's on your mind?</h1>
     <p class="welcome-sub">NightMind powered by Groq AI. Click the orb to talk or type below.</p>
@@ -510,119 +445,70 @@ function buildWelcomeHTML(){
     </div>
   </div>`;
 }
+function newChat(){ currentChatId = null; document.getElementById('messages').innerHTML = buildWelcomeHTML(); renderHistory(); closeSidebar(); }
+function quickPrompt(text){ chatInput.value = text; sendMessage(); }
 
-function newChat(){
-  currentChatId = null;
-  document.getElementById('messages').innerHTML = buildWelcomeHTML();
-  renderHistory();
-  closeSidebar();
-}
-
-function quickPrompt(text){
-  chatInput.value = text;
-  sendMessage();
-}
-
-/* =========================
-   SEND MESSAGE
-========================= */
+/* SEND MESSAGE */
 let isBusy = false;
-
 async function sendMessage(){
   if(isBusy) return;
   const text = chatInput.value.trim();
   if(!text) return;
-  chatInput.value = '';
-  chatInput.style.height = '56px';
-
+  chatInput.value = ''; chatInput.style.height = '56px';
   const messages = document.getElementById('messages');
   const welcome = document.getElementById('welcome');
   if(welcome) welcome.remove();
-
   const userDiv = document.createElement('div');
-  userDiv.className = 'msg-user';
-  userDiv.textContent = text;
-  messages.appendChild(userDiv);
-  messages.scrollTop = messages.scrollHeight;
+  userDiv.className = 'msg-user'; userDiv.textContent = text;
+  messages.appendChild(userDiv); messages.scrollTop = messages.scrollHeight;
   saveMessage('user', text);
-
   const typing = document.createElement('div');
   typing.className = 'typing-wrap';
   typing.innerHTML = `<div style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;"><div class="live-dot"></div>NightMind is thinking...</div>`;
-  messages.appendChild(typing);
-  messages.scrollTop = messages.scrollHeight;
+  messages.appendChild(typing); messages.scrollTop = messages.scrollHeight;
   isBusy = true;
-
   try{
     const selectedModel = document.getElementById('modelSelect').value;
     const response = await fetch('/chat', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
+      method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         model: selectedModel,
-        messages: chats[currentChatId]
-          ? chats[currentChatId].messages.slice(-20)
-          : [{ role:'user', content: text }],
-        temperature: 0.7,
-        max_tokens: 1000
+        messages: chats[currentChatId] ? chats[currentChatId].messages.slice(-20) : [{role:'user',content:text}],
+        temperature: 0.7, max_tokens: 1000
       })
     });
-
     if(!response.ok) throw new Error('Server Error ' + response.status);
     const data = await response.json();
     typing.remove();
-
     let reply = '';
     if(data.choices && data.choices[0] && data.choices[0].message){
       reply = data.choices[0].message.content;
     } else {
       reply = '⚠ Unexpected response: ' + JSON.stringify(data).slice(0,150);
     }
-
     const aiDiv = document.createElement('div');
-    aiDiv.className = 'msg-ai';
-    messages.appendChild(aiDiv);
-
-    let i = 0;
+    aiDiv.className = 'msg-ai'; messages.appendChild(aiDiv);
     const wasVoice = !!window._lastInputWasVoice;
     window._lastInputWasVoice = false;
-
+    let i = 0;
     function type(){
-      if(i < reply.length){
-        aiDiv.textContent += reply[i];
-        i++;
-        messages.scrollTop = messages.scrollHeight;
-        setTimeout(type, 7);
-      } else {
-        saveMessage('assistant', reply);
-        isBusy = false;
-        if(wasVoice) speakReply(reply);
-      }
+      if(i < reply.length){ aiDiv.textContent += reply[i]; i++; messages.scrollTop = messages.scrollHeight; setTimeout(type, 7); }
+      else { saveMessage('assistant', reply); isBusy = false; if(wasVoice) speakReply(reply); }
     }
     type();
-
   } catch(err){
     typing.remove();
     const errDiv = document.createElement('div');
-    errDiv.className = 'msg-ai';
-    errDiv.textContent = '⚠ ' + err.message;
-    messages.appendChild(errDiv);
-    isBusy = false;
+    errDiv.className = 'msg-ai'; errDiv.textContent = '⚠ ' + err.message;
+    messages.appendChild(errDiv); isBusy = false;
   }
 }
 
-/* =========================
-   LOAD SAVED CHATS
-========================= */
+/* LOAD SAVED CHATS */
 setTimeout(() => {
   const ids = Object.keys(chats);
-  if(ids.length > 0){
-    currentChatId = ids[ids.length - 1];
-    renderHistory();
-    loadChat(currentChatId);
-  } else {
-    renderHistory();
-  }
+  if(ids.length > 0){ currentChatId = ids[ids.length-1]; renderHistory(); loadChat(currentChatId); }
+  else renderHistory();
 }, 100);
 </script>
 </body>
