@@ -516,29 +516,49 @@ async function sendMessage(){
       reply = '⚠ Unexpected response: ' + JSON.stringify(data).slice(0,150);
     }
     const aiDiv = document.createElement('div');
-    aiDiv.className = 'msg-ai'; messages.appendChild(aiDiv);
-    const wasVoice = !!window._lastInputWasVoice;
-    window._lastInputWasVoice = false;
-    let i = 0;
-       if(wasVoice){
-  speakReply(reply);
-}
-      async function type(){
-      if(i < reply.length){ aiDiv.textContent += reply[i]; i++; messages.scrollTop = messages.scrollHeight; setTimeout(type, 7); }
-      else { saveMessage('assistant', reply); if (
-  chats[currentChatId] &&
-  chats[currentChatId].messages.length <= 2
-) {
-  const smartTitle = await generateChatTitle(
-    chats[currentChatId].messages
-  );
+aiDiv.className = 'msg-ai';
+messages.appendChild(aiDiv);
 
-  chats[currentChatId].title = smartTitle;
-  saveChats();
-  renderHistory();
-}isBusy = false; }
+const wasVoice = !!window._lastInputWasVoice;
+window._lastInputWasVoice = false;
+
+let i = 0;
+
+// START SPEAKING IMMEDIATELY
+if(wasVoice){
+  setTimeout(() => {
+    speakReply(reply);
+  }, 100);
+}
+
+function type(){
+  if(i < reply.length){
+    aiDiv.textContent += reply[i];
+    i++;
+    messages.scrollTop = messages.scrollHeight;
+    setTimeout(type, 7);
+  } else {
+
+    saveMessage('assistant', reply);
+
+    if(
+      chats[currentChatId] &&
+      chats[currentChatId].messages.length <= 2
+    ){
+      generateChatTitle(
+        chats[currentChatId].messages
+      ).then(smartTitle => {
+        chats[currentChatId].title = smartTitle;
+        saveChats();
+        renderHistory();
+      });
     }
-    type();
+
+    isBusy = false;
+  }
+}
+
+type();
   } catch(err){
     typing.remove();
     const errDiv = document.createElement('div');
