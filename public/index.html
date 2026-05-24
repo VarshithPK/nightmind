@@ -450,6 +450,35 @@ function quickPrompt(text){ chatInput.value = text; sendMessage(); }
 
 /* SEND MESSAGE */
 let isBusy = false;
+async function generateChatTitle(messages) {
+  try {
+    const response = await fetch('/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: document.getElementById('modelSelect').value,
+        messages: [
+          {
+            role: 'system',
+            content: 'Generate a very short chat title (3-6 words max). No quotes.'
+          },
+          ...messages.slice(0, 4)
+        ],
+        temperature: 0.3,
+        max_tokens: 20
+      })
+    });
+
+    const data = await response.json();
+
+    return data.choices?.[0]?.message?.content?.trim() || 'New Chat';
+
+  } catch {
+    return 'New Chat';
+  }
+}
 async function sendMessage(){
   if(isBusy) return;
   const text = chatInput.value.trim();
@@ -493,7 +522,18 @@ async function sendMessage(){
     let i = 0;
     function type(){
       if(i < reply.length){ aiDiv.textContent += reply[i]; i++; messages.scrollTop = messages.scrollHeight; setTimeout(type, 7); }
-      else { saveMessage('assistant', reply); isBusy = false; if(wasVoice) speakReply(reply); }
+      else { saveMessage('assistant', reply); if (
+  chats[currentChatId] &&
+  chats[currentChatId].messages.length <= 2
+) {
+  const smartTitle = await generateChatTitle(
+    chats[currentChatId].messages
+  );
+
+  chats[currentChatId].title = smartTitle;
+  saveChats();
+  renderHistory();
+}isBusy = false; if(wasVoice) speakReply(reply); }
     }
     type();
   } catch(err){
