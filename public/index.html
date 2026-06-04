@@ -707,254 +707,310 @@ function newChat(){ currentChatId = null; document.getElementById('messages').in
 function quickPrompt(text){ chatInput.value = text; sendMessage(); }
 
 /* SEND MESSAGE */
+/* SEND MESSAGE */
 let isBusy = false;
 
-{
-  try {
-    const response = await fetch('/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: document.getElementById('modelSelect').value,
-        messages: [
-          {
-            role: 'system',
-            content: `
-Generate a short modern chat title.
-
-Rules:
-- 2 to 5 words
-- no quotes
-- no punctuation
-- summarize naturally
-- sound like ChatGPT titles
-`
-          },
-          ...messages.slice(0, 4)
-        ],
-        temperature: 0.3,
-        max_tokens: 20
-      })
-    });
-
-    const data = await response.json();
-
-    return data.choices?.[0]?.message?.content?.trim() || 'New Chat';
-
-  } catch {
-    return 'New Chat';
-  }
-}
 async function sendMessage(){
+
   if(isBusy) return;
+
   const text = chatInput.value.trim();
+
   if(!text) return;
-  chatInput.value = ''; chatInput.style.height = '56px';
-  const messages = document.getElementById('messages');
-  const welcome = document.getElementById('welcome');
+
+  chatInput.value = '';
+  chatInput.style.height = '56px';
+
+  const messages =
+    document.getElementById('messages');
+
+  const welcome =
+    document.getElementById('welcome');
+
   if(welcome) welcome.remove();
-  const userDiv = document.createElement('div');
-  userDiv.className = 'msg-user'; userDiv.textContent = text;
-  messages.appendChild(userDiv); messages.scrollTop = messages.scrollHeight;
+
+  const userDiv =
+    document.createElement('div');
+
+  userDiv.className = 'msg-user';
+  userDiv.textContent = text;
+
+  messages.appendChild(userDiv);
+
+  messages.scrollTop =
+    messages.scrollHeight;
+
   if (!currentChatId) {
-  createChat(text);
-}
-
-saveMessage('user', text);
-  const typing = document.createElement('div');
-  typing.className = 'typing-wrap';
-  typing.innerHTML = `<div style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;"><div class="live-dot"></div>NightMind is thinking...</div>`;
-  messages.appendChild(typing); messages.scrollTop = messages.scrollHeight;
-  isBusy = true;
-  try{
-    const selectedModel = document.getElementById('modelSelect').value;
-    const response = await fetch('/chat', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        model: selectedModel,
-        messages: chats[currentChatId] ? chats[currentChatId].messages.slice(-20) : [{role:'user',content:text}],
-        temperature: 0.7, max_tokens: 1000
-      })
-    });
-    if(!response.ok) throw new Error('Server Error ' + response.status);
-    const data = await response.json();
-    typing.remove();
-    let reply = '';
-    if(data.choices && data.choices[0] && data.choices[0].message){
-      reply = data.choices[0].message.content;
-    } else {
-      reply = '⚠ Unexpected response: ' + JSON.stringify(data).slice(0,150);
-    }
-    const aiDiv = document.createElement('div');
-aiDiv.className = 'msg-ai';
-messages.appendChild(aiDiv);
-
-const wasVoice = !!window._lastInputWasVoice;
-window._lastInputWasVoice = false;
-
-let i = 0;
-let spokenChunk = '';
-let currentlySpeaking = false;
-
-/* ========= SPEAK FUNCTION ========= */
-function speakChunk(text){
-
-  if(!window.speechSynthesis) return;
-
-  const clean = text
-    .replace(/\*\*/g,'')
-    .replace(/\*/g,'')
-    .replace(/#{1,6} /g,'')
-    .replace(/`/g,'');
-
-  const utter = new SpeechSynthesisUtterance(clean);
-
-  utter.rate = 1;
-  utter.pitch = 1;
-  utter.volume = 1;
-  utter.lang = 'en-US';
-
-  const voices = speechSynthesis.getVoices();
-
-  const preferred =
-    voices.find(v => v.lang.includes('en-US')) ||
-    voices.find(v => v.lang.includes('en')) ||
-    voices[0];
-
-  if(preferred){
-    utter.voice = preferred;
+    createChat(text);
   }
 
-  currentlySpeaking = true;
-  isSpeaking = true;
-  setOrbState('speaking');
+  saveMessage('user', text);
 
-  utter.onend = () => {
-    currentlySpeaking = false;
+  const typing =
+    document.createElement('div');
 
-    // if nothing else queued
-    if(!speechSynthesis.speaking){
-      isSpeaking = false;
-      setOrbState('idle');
+  typing.className = 'typing-wrap';
+
+  typing.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;">
+      <div class="live-dot"></div>
+      NightMind is thinking...
+    </div>
+  `;
+
+  messages.appendChild(typing);
+
+  messages.scrollTop =
+    messages.scrollHeight;
+
+  isBusy = true;
+
+  try {
+
+    const selectedModel =
+      document.getElementById('modelSelect').value;
+
+    const response =
+      await fetch('/chat', {
+
+      method:'POST',
+
+      headers:{
+        'Content-Type':'application/json'
+      },
+
+      body: JSON.stringify({
+
+        model: selectedModel,
+
+        messages:
+          chats[currentChatId]
+          ? chats[currentChatId].messages.slice(-20)
+          : [{role:'user',content:text}],
+
+        temperature: 0.7,
+        max_tokens: 1000
+      })
+    });
+
+    if(!response.ok){
+      throw new Error(
+        'Server Error ' + response.status
+      );
     }
-  };
 
-  utter.onerror = () => {
-    currentlySpeaking = false;
-    isSpeaking = false;
-    setOrbState('idle');
-  };
+    const data =
+      await response.json();
 
-  speechSynthesis.speak(utter);
-}
+    typing.remove();
 
-/* ========= STOP SPEAKING ========= */
-function stopSpeaking(){
+    let reply = '';
 
-  speechSynthesis.cancel();
-
-  currentlySpeaking = false;
-  isSpeaking = false;
-
-  setOrbState('idle');
-}
-
-/* ========= TYPE EFFECT ========= */
-function type(){
-
-  if(i < reply.length){
-
-    aiDiv.textContent += reply[i];
-    spokenChunk += reply[i];
-
-    messages.scrollTop = messages.scrollHeight;
-
-    // SPEAK EACH SENTENCE LIVE
     if(
-      wasVoice &&
-      (
-        reply[i] === '.' ||
-        reply[i] === '?' ||
-        reply[i] === '!' ||
-        spokenChunk.length > 120
-      )
+      data.choices &&
+      data.choices[0] &&
+      data.choices[0].message
     ){
 
-      speakChunk(spokenChunk);
-      spokenChunk = '';
+      reply =
+        data.choices[0].message.content;
+
+    } else {
+
+      reply =
+        '⚠ Unexpected response';
     }
 
-    i++;
+    const aiDiv =
+      document.createElement('div');
 
-    setTimeout(type, 7);
+    aiDiv.className = 'msg-ai';
 
-  } else {
+    messages.appendChild(aiDiv);
 
-    // SPEAK REMAINING TEXT
-    if(wasVoice && spokenChunk.trim()){
-      speakChunk(spokenChunk);
+    const wasVoice =
+      !!window._lastInputWasVoice;
+
+    window._lastInputWasVoice = false;
+
+    let i = 0;
+
+    let spokenChunk = '';
+
+    function speakChunk(text){
+
+      if(!window.speechSynthesis) return;
+
+      const clean = text
+        .replace(/\*\*/g,'')
+        .replace(/\*/g,'')
+        .replace(/#{1,6} /g,'')
+        .replace(/`/g,'');
+
+      const utter =
+        new SpeechSynthesisUtterance(clean);
+
+      utter.rate = 1;
+      utter.pitch = 1;
+      utter.volume = 1;
+      utter.lang = 'en-US';
+
+      const voices =
+        speechSynthesis.getVoices();
+
+      const preferred =
+        voices.find(v => v.lang.includes('en-US')) ||
+        voices.find(v => v.lang.includes('en')) ||
+        voices[0];
+
+      if(preferred){
+        utter.voice = preferred;
+      }
+
+      isSpeaking = true;
+
+      setOrbState('speaking');
+
+      utter.onend = () => {
+
+        if(!speechSynthesis.speaking){
+
+          isSpeaking = false;
+
+          setOrbState('idle');
+        }
+      };
+
+      utter.onerror = () => {
+
+        isSpeaking = false;
+
+        setOrbState('idle');
+      };
+
+      speechSynthesis.speak(utter);
     }
 
-    saveMessage('assistant', reply);
+    function type(){
 
-   if (
-  chats[currentChatId] &&
-  chats[currentChatId].messages.length === 2
-) {
+      if(i < reply.length){
 
-  generateChatTitle(
-    chats[currentChatId].messages
-  ).then(title => {
+        aiDiv.textContent += reply[i];
 
-    chats[currentChatId].title =
-      title;
+        spokenChunk += reply[i];
 
-    saveChats();
-    renderHistory();
-  });
-}{
+        messages.scrollTop =
+          messages.scrollHeight;
 
-      generateChatTitle(
-        chats[currentChatId].messages
-      ).then(smartTitle => {
+        if(
+          wasVoice &&
+          (
+            reply[i] === '.' ||
+            reply[i] === '?' ||
+            reply[i] === '!' ||
+            spokenChunk.length > 120
+          )
+        ){
 
-        chats[currentChatId].title = smartTitle;
+          speakChunk(spokenChunk);
 
-        saveChats();
-        renderHistory();
-      });
+          spokenChunk = '';
+        }
+
+        i++;
+
+        setTimeout(type, 7);
+
+      } else {
+
+        if(
+          wasVoice &&
+          spokenChunk.trim()
+        ){
+          speakChunk(spokenChunk);
+        }
+
+        saveMessage(
+          'assistant',
+          reply
+        );
+
+        if(
+          chats[currentChatId] &&
+          chats[currentChatId].messages.length === 2
+        ){
+
+          generateChatTitle(
+            chats[currentChatId].messages
+          ).then(title => {
+
+            chats[currentChatId].title =
+              title;
+
+            saveChats();
+
+            renderHistory();
+          });
+        }
+
+        isBusy = false;
+      }
     }
+
+    type();
+
+  } catch(err){
+
+    typing.remove();
+
+    const errDiv =
+      document.createElement('div');
+
+    errDiv.className = 'msg-ai';
+
+    errDiv.textContent =
+      '⚠ ' + err.message;
+
+    messages.appendChild(errDiv);
 
     isBusy = false;
   }
 }
 
-type();
-  } catch(err){
-    typing.remove();
-    const errDiv = document.createElement('div');
-    errDiv.className = 'msg-ai'; errDiv.textContent = '⚠ ' + err.message;
-    messages.appendChild(errDiv); isBusy = false;
-  }
-}
-
 /* LOAD SAVED CHATS */
+
 setTimeout(() => {
-  const ids = Object.keys(chats);
-  if(ids.length > 0){ currentChatId = ids[ids.length-1]; renderHistory(); loadChat(currentChatId); }
-  else renderHistory();
+
+  const ids =
+    Object.keys(chats);
+
+  if(ids.length > 0){
+
+    currentChatId =
+      ids[ids.length - 1];
+
+    renderHistory();
+
+    loadChat(currentChatId);
+
+  } else {
+
+    renderHistory();
+  }
+
 }, 100);
-// MOBILE VOICE FIX
+
+/* MOBILE VOICE FIX */
+
 window.addEventListener('click', () => {
   speechSynthesis.resume();
 });
-<script>
-window.addEventListener("load", () => {
-    console.log("NightMind Loaded Successfully 🚀");
-});
 
+window.addEventListener('load', () => {
+  console.log(
+    'NightMind Loaded Successfully 🚀'
+  );
+});
 </script>
 </body>
 </html>
