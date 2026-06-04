@@ -498,65 +498,195 @@ window.addEventListener('resize', () => { if(window.innerWidth > 768) closeSideb
 
 /* CHAT STORAGE */
 let currentChatId = null;
-let chats = JSON.parse(localStorage.getItem('nightmind_chats')) || {};
-function saveChats(){ localStorage.setItem('nightmind_chats', JSON.stringify(chats)); }
-function renderHistory(){
-  const history = document.getElementById('history');
-  history.innerHTML = '';
-  Object.keys(chats).reverse().forEach(chatId => {
-    const item = document.createElement('div');
-    item.className = 'hist-item ' + (chatId === currentChatId ? 'active' : '');
-    item.textContent = chats[chatId].title;
-    item.onclick = () => { loadChat(chatId); closeSidebar(); };
-    history.appendChild(item);
-  });
-}
-function createChat(firstMessage='New Chat'){
 
-  // SMART TITLE CLEANING
+let chats =
+  JSON.parse(
+    localStorage.getItem('nightmind_chats')
+  ) || {};
+
+function saveChats() {
+
+  localStorage.setItem(
+    'nightmind_chats',
+    JSON.stringify(chats)
+  );
+}
+
+function renderHistory() {
+
+  const history =
+    document.getElementById('history');
+
+  history.innerHTML = '';
+
+  Object.keys(chats)
+    .reverse()
+    .forEach(chatId => {
+
+      const item =
+        document.createElement('div');
+
+      item.className =
+        'hist-item ' +
+        (chatId === currentChatId
+          ? 'active'
+          : '');
+
+      item.textContent =
+        chats[chatId].title;
+
+      item.onclick = () => {
+
+        loadChat(chatId);
+        closeSidebar();
+      };
+
+      history.appendChild(item);
+    });
+}
+
+function createChat(firstMessage = 'New Chat') {
+
   let smartTitle = firstMessage
+    .replace(/\n/g, ' ')
     .replace(/[^\w\s]/gi, '')
     .trim();
 
-  // LIMIT LENGTH
-  if(smartTitle.length > 40){
-    smartTitle = smartTitle.substring(0, 40) + '...';
+  smartTitle =
+    smartTitle.substring(0, 35);
+
+  smartTitle =
+    smartTitle.charAt(0).toUpperCase() +
+    smartTitle.slice(1);
+
+  if (
+    !smartTitle ||
+    smartTitle.length < 2
+  ) {
+    smartTitle = 'New Chat';
   }
 
-  // FALLBACK
-  if(!smartTitle || smartTitle.length < 3){
-    smartTitle = 'Untitled Chat';
-  }
-
-  currentChatId = 'chat_' + Date.now();
+  currentChatId =
+    'chat_' + Date.now();
 
   chats[currentChatId] = {
     title: smartTitle,
-    messages:[]
+    messages: []
   };
 
   saveChats();
   renderHistory();
 }
 
-function saveMessage(role, content){
-  if(!currentChatId) createChat(content);
-  chats[currentChatId].messages.push({ role, content });
+async function generateChatTitle(messages) {
+
+  try {
+
+    const response =
+      await fetch('/chat', {
+
+      method: 'POST',
+
+      headers: {
+        'Content-Type':
+          'application/json'
+      },
+
+      body: JSON.stringify({
+
+        model:
+          document.getElementById(
+            'modelSelect'
+          ).value,
+
+        messages: [
+
+          {
+            role: 'system',
+
+            content:
+`Generate a short modern chat title.
+
+Rules:
+- 2 to 5 words
+- no quotes
+- no punctuation
+- summarize naturally
+- sound like ChatGPT titles`
+          },
+
+          ...messages.slice(0, 4)
+        ],
+
+        temperature: 0.3,
+        max_tokens: 20
+      })
+    });
+
+    const data =
+      await response.json();
+
+    return (
+      data.choices?.[0]?.message?.content?.trim()
+      || 'New Chat'
+    );
+
+  } catch (err) {
+
+    console.error(err);
+
+    return 'New Chat';
+  }
+}
+
+function saveMessage(role, content) {
+
+  if (!currentChatId) {
+    createChat(content);
+  }
+
+  chats[currentChatId]
+    .messages
+    .push({
+      role,
+      content
+    });
+
   saveChats();
 }
-function loadChat(chatId){
-  currentChatId = chatId; renderHistory();
-  const messages = document.getElementById('messages');
+
+function loadChat(chatId) {
+
+  currentChatId = chatId;
+
+  renderHistory();
+
+  const messages =
+    document.getElementById('messages');
+
   messages.innerHTML = '';
-  chats[chatId].messages.forEach(msg => {
-    const div = document.createElement('div');
-    div.className = msg.role === 'user' ? 'msg-user' : 'msg-ai';
-    div.textContent = msg.content;
-    messages.appendChild(div);
-  });
-  messages.scrollTop = messages.scrollHeight;
-}
-function buildWelcomeHTML(){
+
+  chats[chatId]
+    .messages
+    .forEach(msg => {
+
+      const div =
+        document.createElement('div');
+
+      div.className =
+        msg.role === 'user'
+          ? 'msg-user'
+          : 'msg-ai';
+
+      div.textContent =
+        msg.content;
+
+      messages.appendChild(div);
+    });
+
+  messages.scrollTop =
+    messages.scrollHeight;
+}function buildWelcomeHTML(){
   return `<div id="welcome">
     <div class="orb-wrap">
       <div class="ai-orb" id="mainOrb" onclick="toggleRecording()" title="Click to talk"></div>
@@ -578,7 +708,8 @@ function quickPrompt(text){ chatInput.value = text; sendMessage(); }
 
 /* SEND MESSAGE */
 let isBusy = false;
-async function generateChatTitle(messages) {
+
+{
   try {
     const response = await fetch('/chat', {
       method: 'POST',
@@ -627,7 +758,7 @@ async function sendMessage(){
   const userDiv = document.createElement('div');
   userDiv.className = 'msg-user'; userDiv.textContent = text;
   messages.appendChild(userDiv); messages.scrollTop = messages.scrollHeight;
-  if(!currentChatId){
+  if (!currentChatId) {
   createChat(text);
 }
 
@@ -768,10 +899,22 @@ function type(){
 
     saveMessage('assistant', reply);
 
-    if(
+   if (
   chats[currentChatId] &&
   chats[currentChatId].messages.length === 2
-){
+) {
+
+  generateChatTitle(
+    chats[currentChatId].messages
+  ).then(title => {
+
+    chats[currentChatId].title =
+      title;
+
+    saveChats();
+    renderHistory();
+  });
+}{
 
       generateChatTitle(
         chats[currentChatId].messages
@@ -807,21 +950,11 @@ setTimeout(() => {
 window.addEventListener('click', () => {
   speechSynthesis.resume();
 });
+<script>
+window.addEventListener("load", () => {
+    console.log("NightMind Loaded Successfully 🚀");
+});
 
-// STOP SPEAKING WHEN ORB CLICKED
-function toggleRecording(){
-
-  if(isSpeaking){
-    stopSpeaking();
-    return;
-  }
-
-  if(isRecording){
-    stopRecording();
-  } else {
-    startRecording();
-  }
-}
 </script>
 </body>
 </html>
