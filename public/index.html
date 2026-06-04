@@ -277,7 +277,13 @@ body.light .toggle-thumb{transform:translateX(20px);background:var(--red);}
   </div>
 </div>
 
+```html
 <script>
+/* =========================
+   CONFIG
+========================= */
+const API = 'https://your-backend.onrender.com';
+
 /* =========================
    MEDIA RECORDER VOICE
 ========================= */
@@ -288,168 +294,333 @@ let isSpeaking = false;
 let mediaStream = null;
 
 async function toggleRecording(){
+
   if(isSpeaking){
-    window.speechSynthesis && window.speechSynthesis.cancel();
+
+    window.speechSynthesis.cancel();
+
     isSpeaking = false;
+
     setOrbState('idle');
+
     return;
   }
+
   if(isRecording){
+
     stopRecording();
+
   } else {
+
     await startRecording();
   }
 }
 
 async function startRecording(){
+
   try {
-    mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    mediaStream =
+      await navigator.mediaDevices.getUserMedia({
+        audio: true
+      });
+
     audioChunks = [];
 
-    // Pick best supported format
-    const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+    const mimeType =
+      MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
       ? 'audio/webm;codecs=opus'
       : MediaRecorder.isTypeSupported('audio/webm')
       ? 'audio/webm'
       : 'audio/ogg';
 
-    mediaRecorder = new MediaRecorder(mediaStream, { mimeType });
+    mediaRecorder =
+      new MediaRecorder(mediaStream, {
+        mimeType
+      });
 
     mediaRecorder.ondataavailable = (e) => {
-      if(e.data.size > 0) audioChunks.push(e.data);
+
+      if(e.data.size > 0){
+
+        audioChunks.push(e.data);
+      }
     };
 
     mediaRecorder.onstop = async () => {
-      // Stop all mic tracks
-      mediaStream.getTracks().forEach(t => t.stop());
+
+      mediaStream
+        .getTracks()
+        .forEach(t => t.stop());
+
       setOrbState('processing');
+
       await transcribeAudio();
     };
 
-    mediaRecorder.start(100); // collect data every 100ms
+    // FIXED MOBILE BUG
+    mediaRecorder.start();
+
     isRecording = true;
+
     setOrbState('recording');
 
   } catch(err){
+
+    console.error(err);
+
     if(err.name === 'NotAllowedError'){
-      alert('Microphone access blocked! Please allow microphone in your browser settings.');
+
+      alert(
+        'Please allow microphone access.'
+      );
+
     } else {
-      alert('Could not access microphone: ' + err.message);
+
+      alert(
+        'Microphone error: ' +
+        err.message
+      );
     }
+
+    setOrbState('idle');
   }
 }
 
 function stopRecording(){
-  if(mediaRecorder && mediaRecorder.state !== 'inactive'){
+
+  if(
+    mediaRecorder &&
+    mediaRecorder.state !== 'inactive'
+  ){
+
     isRecording = false;
+
     mediaRecorder.stop();
   }
 }
 
 async function transcribeAudio(){
-  try {
-    const blob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
 
-    // Check if audio is too short (less than 0.5s ≈ 5000 bytes)
-    if(blob.size < 5000){
+  try {
+
+    const blob =
+      new Blob(audioChunks, {
+        type: mediaRecorder.mimeType
+      });
+
+    // LOWERED LIMIT
+    if(blob.size < 1000){
+
       setOrbState('idle');
-      document.getElementById('orbStatus').textContent = 'Too short — try again';
-      setTimeout(() => setOrbState('idle'), 2000);
+
+      document.getElementById(
+        'orbStatus'
+      ).textContent =
+        'Too short — try again';
+
+      setTimeout(() => {
+
+        setOrbState('idle');
+
+      }, 2000);
+
       return;
     }
 
-    const formData = new FormData();
-    formData.append('audio', blob, 'audio.webm');
+    const formData =
+      new FormData();
 
-    const res = await fetch('/transcribe', {
+    formData.append(
+      'audio',
+      blob,
+      'audio.webm'
+    );
+
+    const res =
+      await fetch(`${API}/transcribe`, {
+
       method: 'POST',
+
       body: formData
     });
 
-    const data = await res.json();
+    if(!res.ok){
 
-    if(data.text && data.text.trim()){
-      chatInput.value = data.text.trim();
-      setOrbState('idle');
-      window._lastInputWasVoice = true;
-      sendMessage();
-    } else {
-      setOrbState('idle');
-      document.getElementById('orbStatus').textContent = "Couldn't hear you — try again";
-      setTimeout(() => setOrbState('idle'), 2000);
+      throw new Error(
+        'Transcription failed'
+      );
     }
+
+    const data =
+      await res.json();
+
+    if(
+      data.text &&
+      data.text.trim()
+    ){
+
+      chatInput.value =
+        data.text.trim();
+
+      setOrbState('idle');
+
+      window._lastInputWasVoice = true;
+
+      sendMessage();
+
+    } else {
+
+      setOrbState('idle');
+
+      document.getElementById(
+        'orbStatus'
+      ).textContent =
+        "Couldn't hear you";
+
+      setTimeout(() => {
+
+        setOrbState('idle');
+
+      }, 2000);
+    }
+
   } catch(err){
+
+    console.error(err);
+
     setOrbState('idle');
-    document.getElementById('orbStatus').textContent = '⚠ Transcription failed';
-    setTimeout(() => setOrbState('idle'), 2000);
+
+    document.getElementById(
+      'orbStatus'
+    ).textContent =
+      '⚠ Transcription failed';
+
+    setTimeout(() => {
+
+      setOrbState('idle');
+
+    }, 2000);
   }
 }
 
 function setOrbState(state){
-  const orb = document.getElementById('mainOrb');
-  const status = document.getElementById('orbStatus');
-  const ripples = document.getElementById('orbRipples');
-  const micBtn = document.getElementById('micBtn');
+
+  const orb =
+    document.getElementById('mainOrb');
+
+  const status =
+    document.getElementById('orbStatus');
+
+  const ripples =
+    document.getElementById('orbRipples');
+
+  const micBtn =
+    document.getElementById('micBtn');
+
   if(!orb) return;
 
-  orb.classList.remove('recording','processing','speaking');
-  status.classList.remove('recording','processing','speaking');
+  orb.classList.remove(
+    'recording',
+    'processing',
+    'speaking'
+  );
+
+  status.classList.remove(
+    'recording',
+    'processing',
+    'speaking'
+  );
+
   ripples.classList.add('hidden');
+
   micBtn.classList.remove('active');
 
   if(state === 'recording'){
+
     orb.classList.add('recording');
+
     status.classList.add('recording');
-    status.textContent = '🔴 Recording... click to stop';
+
+    status.textContent =
+      '🔴 Recording... click to stop';
+
     ripples.classList.remove('hidden');
+
     micBtn.classList.add('active');
+
     micBtn.textContent = '⏹';
-    chatInput.placeholder = 'Recording...';
+
+    chatInput.placeholder =
+      'Recording...';
+
   } else if(state === 'processing'){
+
     orb.classList.add('processing');
+
     status.classList.add('processing');
-    status.textContent = '⏳ Transcribing...';
+
+    status.textContent =
+      '⏳ Transcribing...';
+
     micBtn.textContent = '⏳';
+
   } else if(state === 'speaking'){
+
     orb.classList.add('speaking');
+
     status.classList.add('speaking');
-    status.textContent = '🔊 Speaking... click to stop';
+
+    status.textContent =
+      '🔊 Speaking... click to stop';
+
     micBtn.textContent = '⏹';
+
   } else {
-    status.textContent = 'Click orb to speak';
+
+    status.textContent =
+      'Click orb to speak';
+
     micBtn.textContent = '🎤';
-    chatInput.placeholder = 'Message NightMind... (or click 🎤 to speak)';
+
+    chatInput.placeholder =
+      'Message NightMind...';
   }
 }
 
-/* Speak AI reply */
+/* =========================
+   SPEECH
+========================= */
+
 let currentUtterance = null;
 
-function speakReply(text){
+function speakChunk(text){
 
   if(!window.speechSynthesis) return;
 
-  // STOP OLD SPEECH
+  // FIXED AUDIO STACKING
   window.speechSynthesis.cancel();
 
-  isSpeaking = true;
-  setOrbState('speaking');
+  const clean =
+    text
+      .replace(/\*\*/g,'')
+      .replace(/\*/g,'')
+      .replace(/#{1,6} /g,'')
+      .replace(/`/g,'');
 
-  const clean = text
-    .replace(/\*\*/g,'')
-    .replace(/\*/g,'')
-    .replace(/#{1,6} /g,'')
-    .replace(/`/g,'');
+  const utter =
+    new SpeechSynthesisUtterance(clean);
 
-  currentUtterance = new SpeechSynthesisUtterance(clean);
+  utter.rate = 1;
 
-  currentUtterance.rate = 1;
-  currentUtterance.pitch = 1;
-  currentUtterance.volume = 1;
-  currentUtterance.lang = 'en-US';
+  utter.pitch = 1;
 
-  // BETTER MOBILE VOICE SELECTION
-  const voices = speechSynthesis.getVoices();
+  utter.volume = 1;
+
+  utter.lang = 'en-US';
+
+  const voices =
+    speechSynthesis.getVoices();
 
   const preferred =
     voices.find(v => v.lang.includes('en-US')) ||
@@ -457,54 +628,156 @@ function speakReply(text){
     voices[0];
 
   if(preferred){
-    currentUtterance.voice = preferred;
+
+    utter.voice = preferred;
   }
 
-  currentUtterance.onend = () => {
+  isSpeaking = true;
+
+  setOrbState('speaking');
+
+  utter.onend = () => {
+
+    if(!speechSynthesis.speaking){
+
+      isSpeaking = false;
+
+      setOrbState('idle');
+    }
+  };
+
+  utter.onerror = () => {
+
     isSpeaking = false;
+
     setOrbState('idle');
   };
 
-  currentUtterance.onerror = () => {
-    isSpeaking = false;
-    setOrbState('idle');
-  };
+  speechSynthesis.speak(utter);
+}
 
-  speechSynthesis.speak(currentUtterance);
-}window.speechSynthesis && (window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices());
+window.speechSynthesis &&
+(
+  window.speechSynthesis.onvoiceschanged =
+    () => window.speechSynthesis.getVoices()
+);
 
 /* =========================
    INPUT
 ========================= */
-const chatInput = document.getElementById('chat-input');
-chatInput.addEventListener('input', () => {
-  chatInput.style.height = 'auto';
-  chatInput.style.height = chatInput.scrollHeight + 'px';
-});
+
+const chatInput =
+  document.getElementById(
+    'chat-input'
+  );
+
+chatInput.addEventListener(
+  'input',
+  () => {
+
+    chatInput.style.height =
+      'auto';
+
+    chatInput.style.height =
+      chatInput.scrollHeight + 'px';
+  }
+);
+
 function handleEnter(e){
-  if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); }
+
+  if(
+    e.key === 'Enter' &&
+    !e.shiftKey
+  ){
+
+    e.preventDefault();
+
+    sendMessage();
+  }
 }
 
-/* THEME */
-let isLight = localStorage.getItem('nightmind_theme') === 'light';
-function applyTheme(){ document.body.classList.toggle('light', isLight); }
-function toggleTheme(){ isLight = !isLight; localStorage.setItem('nightmind_theme', isLight ? 'light' : 'dark'); applyTheme(); }
+/* =========================
+   THEME
+========================= */
+
+let isLight =
+  localStorage.getItem(
+    'nightmind_theme'
+  ) === 'light';
+
+function applyTheme(){
+
+  document.body.classList.toggle(
+    'light',
+    isLight
+  );
+}
+
+function toggleTheme(){
+
+  isLight = !isLight;
+
+  localStorage.setItem(
+    'nightmind_theme',
+    isLight ? 'light' : 'dark'
+  );
+
+  applyTheme();
+}
+
 applyTheme();
 
-/* SIDEBAR */
-function openSidebar(){ document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('show'); }
-function closeSidebar(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show'); }
-window.addEventListener('resize', () => { if(window.innerWidth > 768) closeSidebar(); });
+/* =========================
+   SIDEBAR
+========================= */
 
-/* CHAT STORAGE */
+function openSidebar(){
+
+  document
+    .getElementById('sidebar')
+    .classList.add('open');
+
+  document
+    .getElementById('overlay')
+    .classList.add('show');
+}
+
+function closeSidebar(){
+
+  document
+    .getElementById('sidebar')
+    .classList.remove('open');
+
+  document
+    .getElementById('overlay')
+    .classList.remove('show');
+}
+
+window.addEventListener(
+  'resize',
+  () => {
+
+    if(window.innerWidth > 768){
+
+      closeSidebar();
+    }
+  }
+);
+
+/* =========================
+   CHAT STORAGE
+========================= */
+
 let currentChatId = null;
 
 let chats =
   JSON.parse(
-    localStorage.getItem('nightmind_chats')
+    localStorage.getItem(
+      'nightmind_chats'
+    )
   ) || {};
 
-function saveChats() {
+function saveChats(){
 
   localStorage.setItem(
     'nightmind_chats',
@@ -512,10 +785,12 @@ function saveChats() {
   );
 }
 
-function renderHistory() {
+function renderHistory(){
 
   const history =
-    document.getElementById('history');
+    document.getElementById(
+      'history'
+    );
 
   history.innerHTML = '';
 
@@ -528,9 +803,11 @@ function renderHistory() {
 
       item.className =
         'hist-item ' +
-        (chatId === currentChatId
+        (
+          chatId === currentChatId
           ? 'active'
-          : '');
+          : ''
+        );
 
       item.textContent =
         chats[chatId].title;
@@ -538,6 +815,7 @@ function renderHistory() {
       item.onclick = () => {
 
         loadChat(chatId);
+
         closeSidebar();
       };
 
@@ -545,24 +823,25 @@ function renderHistory() {
     });
 }
 
-function createChat(firstMessage = 'New Chat') {
+function createChat(firstMessage='New Chat'){
 
-  let smartTitle = firstMessage
-    .replace(/\n/g, ' ')
-    .replace(/[^\w\s]/gi, '')
-    .trim();
+  let smartTitle =
+    firstMessage
+      .replace(/\n/g,' ')
+      .replace(/[^\w\s]/gi,'')
+      .trim();
 
   smartTitle =
-    smartTitle.substring(0, 35);
+    smartTitle.substring(0,35);
 
   smartTitle =
     smartTitle.charAt(0).toUpperCase() +
     smartTitle.slice(1);
 
-  if (
+  if(
     !smartTitle ||
     smartTitle.length < 2
-  ) {
+  ){
     smartTitle = 'New Chat';
   }
 
@@ -570,78 +849,21 @@ function createChat(firstMessage = 'New Chat') {
     'chat_' + Date.now();
 
   chats[currentChatId] = {
+
     title: smartTitle,
+
     messages: []
   };
 
   saveChats();
+
   renderHistory();
 }
 
-async function generateChatTitle(messages) {
+function saveMessage(role, content){
 
-  try {
+  if(!currentChatId){
 
-    const response =
-      await fetch('/chat', {
-
-      method: 'POST',
-
-      headers: {
-        'Content-Type':
-          'application/json'
-      },
-
-      body: JSON.stringify({
-
-        model:
-          document.getElementById(
-            'modelSelect'
-          ).value,
-
-        messages: [
-
-          {
-            role: 'system',
-
-            content:
-`Generate a short modern chat title.
-
-Rules:
-- 2 to 5 words
-- no quotes
-- no punctuation
-- summarize naturally
-- sound like ChatGPT titles`
-          },
-
-          ...messages.slice(0, 4)
-        ],
-
-        temperature: 0.3,
-        max_tokens: 20
-      })
-    });
-
-    const data =
-      await response.json();
-
-    return (
-      data.choices?.[0]?.message?.content?.trim()
-      || 'New Chat'
-    );
-
-  } catch (err) {
-
-    console.error(err);
-
-    return 'New Chat';
-  }
-}
-
-function saveMessage(role, content) {
-
-  if (!currentChatId) {
     createChat(content);
   }
 
@@ -655,14 +877,16 @@ function saveMessage(role, content) {
   saveChats();
 }
 
-function loadChat(chatId) {
+function loadChat(chatId){
 
   currentChatId = chatId;
 
   renderHistory();
 
   const messages =
-    document.getElementById('messages');
+    document.getElementById(
+      'messages'
+    );
 
   messages.innerHTML = '';
 
@@ -675,8 +899,8 @@ function loadChat(chatId) {
 
       div.className =
         msg.role === 'user'
-          ? 'msg-user'
-          : 'msg-ai';
+        ? 'msg-user'
+        : 'msg-ai';
 
       div.textContent =
         msg.content;
@@ -686,53 +910,46 @@ function loadChat(chatId) {
 
   messages.scrollTop =
     messages.scrollHeight;
-}function buildWelcomeHTML(){
-  return `<div id="welcome">
-    <div class="orb-wrap">
-      <div class="ai-orb" id="mainOrb" onclick="toggleRecording()" title="Click to talk"></div>
-      <div class="orb-ripples hidden" id="orbRipples"><span></span><span></span><span></span></div>
-      <div class="orb-status" id="orbStatus">Click orb to speak</div>
-    </div>
-    <h1 class="welcome-title">What's on your mind?</h1>
-    <p class="welcome-sub">NightMind powered by Groq AI. Click the orb to talk or type below.</p>
-    <div class="quick-actions">
-      <button class="quick-btn" onclick="quickPrompt('Explain black holes simply')">🌌 Explain Black Holes</button>
-      <button class="quick-btn" onclick="quickPrompt('Help me debug my code')">💻 Debug Code</button>
-      <button class="quick-btn" onclick="quickPrompt('Give me startup ideas')">🚀 Startup Ideas</button>
-      <button class="quick-btn" onclick="quickPrompt('Teach me something interesting')">🧠 Teach Me Something</button>
-    </div>
-  </div>`;
 }
-function newChat(){ currentChatId = null; document.getElementById('messages').innerHTML = buildWelcomeHTML(); renderHistory(); closeSidebar(); }
-function quickPrompt(text){ chatInput.value = text; sendMessage(); }
 
-/* SEND MESSAGE */
-/* SEND MESSAGE */
+/* =========================
+   SEND MESSAGE
+========================= */
+
 let isBusy = false;
 
 async function sendMessage(){
 
   if(isBusy) return;
 
-  const text = chatInput.value.trim();
+  const text =
+    chatInput.value.trim();
 
   if(!text) return;
 
   chatInput.value = '';
-  chatInput.style.height = '56px';
+
+  chatInput.style.height =
+    '56px';
 
   const messages =
-    document.getElementById('messages');
+    document.getElementById(
+      'messages'
+    );
 
   const welcome =
-    document.getElementById('welcome');
+    document.getElementById(
+      'welcome'
+    );
 
   if(welcome) welcome.remove();
 
   const userDiv =
     document.createElement('div');
 
-  userDiv.className = 'msg-user';
+  userDiv.className =
+    'msg-user';
+
   userDiv.textContent = text;
 
   messages.appendChild(userDiv);
@@ -740,7 +957,8 @@ async function sendMessage(){
   messages.scrollTop =
     messages.scrollHeight;
 
-  if (!currentChatId) {
+  if(!currentChatId){
+
     createChat(text);
   }
 
@@ -749,10 +967,17 @@ async function sendMessage(){
   const typing =
     document.createElement('div');
 
-  typing.className = 'typing-wrap';
+  typing.className =
+    'typing-wrap';
 
   typing.innerHTML = `
-    <div style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;">
+    <div style="
+      display:flex;
+      align-items:center;
+      gap:8px;
+      color:var(--muted);
+      font-size:13px;
+    ">
       <div class="live-dot"></div>
       NightMind is thinking...
     </div>
@@ -768,15 +993,18 @@ async function sendMessage(){
   try {
 
     const selectedModel =
-      document.getElementById('modelSelect').value;
+      document.getElementById(
+        'modelSelect'
+      ).value;
 
     const response =
-      await fetch('/chat', {
+      await fetch(`${API}/chat`, {
 
-      method:'POST',
+      method: 'POST',
 
       headers:{
-        'Content-Type':'application/json'
+        'Content-Type':
+          'application/json'
       },
 
       body: JSON.stringify({
@@ -785,17 +1013,27 @@ async function sendMessage(){
 
         messages:
           chats[currentChatId]
-          ? chats[currentChatId].messages.slice(-20)
-          : [{role:'user',content:text}],
+          ? chats[currentChatId]
+            .messages
+            .slice(-20)
+          : [
+              {
+                role:'user',
+                content:text
+              }
+            ],
 
         temperature: 0.7,
+
         max_tokens: 1000
       })
     });
 
     if(!response.ok){
+
       throw new Error(
-        'Server Error ' + response.status
+        'Server Error ' +
+        response.status
       );
     }
 
@@ -813,7 +1051,9 @@ async function sendMessage(){
     ){
 
       reply =
-        data.choices[0].message.content;
+        data.choices[0]
+        .message
+        .content;
 
     } else {
 
@@ -824,80 +1064,30 @@ async function sendMessage(){
     const aiDiv =
       document.createElement('div');
 
-    aiDiv.className = 'msg-ai';
+    aiDiv.className =
+      'msg-ai';
 
     messages.appendChild(aiDiv);
 
     const wasVoice =
       !!window._lastInputWasVoice;
 
-    window._lastInputWasVoice = false;
+    window._lastInputWasVoice =
+      false;
 
     let i = 0;
 
     let spokenChunk = '';
 
-    function speakChunk(text){
-
-      if(!window.speechSynthesis) return;
-
-      const clean = text
-        .replace(/\*\*/g,'')
-        .replace(/\*/g,'')
-        .replace(/#{1,6} /g,'')
-        .replace(/`/g,'');
-
-      const utter =
-        new SpeechSynthesisUtterance(clean);
-
-      utter.rate = 1;
-      utter.pitch = 1;
-      utter.volume = 1;
-      utter.lang = 'en-US';
-
-      const voices =
-        speechSynthesis.getVoices();
-
-      const preferred =
-        voices.find(v => v.lang.includes('en-US')) ||
-        voices.find(v => v.lang.includes('en')) ||
-        voices[0];
-
-      if(preferred){
-        utter.voice = preferred;
-      }
-
-      isSpeaking = true;
-
-      setOrbState('speaking');
-
-      utter.onend = () => {
-
-        if(!speechSynthesis.speaking){
-
-          isSpeaking = false;
-
-          setOrbState('idle');
-        }
-      };
-
-      utter.onerror = () => {
-
-        isSpeaking = false;
-
-        setOrbState('idle');
-      };
-
-      speechSynthesis.speak(utter);
-    }
-
     function type(){
 
       if(i < reply.length){
 
-        aiDiv.textContent += reply[i];
+        aiDiv.textContent +=
+          reply[i];
 
-        spokenChunk += reply[i];
+        spokenChunk +=
+          reply[i];
 
         messages.scrollTop =
           messages.scrollHeight;
@@ -919,7 +1109,8 @@ async function sendMessage(){
 
         i++;
 
-        setTimeout(type, 7);
+        // SMOOTHER
+        requestAnimationFrame(type);
 
       } else {
 
@@ -927,6 +1118,7 @@ async function sendMessage(){
           wasVoice &&
           spokenChunk.trim()
         ){
+
           speakChunk(spokenChunk);
         }
 
@@ -934,24 +1126,6 @@ async function sendMessage(){
           'assistant',
           reply
         );
-
-        if(
-          chats[currentChatId] &&
-          chats[currentChatId].messages.length === 2
-        ){
-
-          generateChatTitle(
-            chats[currentChatId].messages
-          ).then(title => {
-
-            chats[currentChatId].title =
-              title;
-
-            saveChats();
-
-            renderHistory();
-          });
-        }
 
         isBusy = false;
       }
@@ -961,12 +1135,15 @@ async function sendMessage(){
 
   } catch(err){
 
+    console.error(err);
+
     typing.remove();
 
     const errDiv =
       document.createElement('div');
 
-    errDiv.className = 'msg-ai';
+    errDiv.className =
+      'msg-ai';
 
     errDiv.textContent =
       '⚠ ' + err.message;
@@ -977,7 +1154,9 @@ async function sendMessage(){
   }
 }
 
-/* LOAD SAVED CHATS */
+/* =========================
+   LOAD CHATS
+========================= */
 
 setTimeout(() => {
 
@@ -1000,17 +1179,29 @@ setTimeout(() => {
 
 }, 100);
 
-/* MOBILE VOICE FIX */
+/* =========================
+   MOBILE VOICE FIX
+========================= */
 
-window.addEventListener('click', () => {
-  speechSynthesis.resume();
-});
+window.addEventListener(
+  'click',
+  () => {
 
-window.addEventListener('load', () => {
-  console.log(
-    'NightMind Loaded Successfully 🚀'
-  );
-});
+    speechSynthesis.resume();
+  }
+);
+
+window.addEventListener(
+  'load',
+  () => {
+
+    console.log(
+      'NightMind Loaded Successfully 🚀'
+    );
+  }
+);
 </script>
+```
+
 </body>
 </html>
