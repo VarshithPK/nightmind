@@ -537,7 +537,8 @@ function createChat(firstMessage='New Chat'){
 
   saveChats();
   renderHistory();
-}}
+}
+
 function saveMessage(role, content){
   if(!currentChatId) createChat(content);
   chats[currentChatId].messages.push({ role, content });
@@ -626,7 +627,11 @@ async function sendMessage(){
   const userDiv = document.createElement('div');
   userDiv.className = 'msg-user'; userDiv.textContent = text;
   messages.appendChild(userDiv); messages.scrollTop = messages.scrollHeight;
-  saveMessage('user', text);
+  if(!currentChatId){
+  createChat(text);
+}
+
+saveMessage('user', text);
   const typing = document.createElement('div');
   typing.className = 'typing-wrap';
   typing.innerHTML = `<div style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;"><div class="live-dot"></div>NightMind is thinking...</div>`;
