@@ -512,10 +512,32 @@ function renderHistory(){
   });
 }
 function createChat(firstMessage='New Chat'){
+
+  // SMART TITLE CLEANING
+  let smartTitle = firstMessage
+    .replace(/[^\w\s]/gi, '')
+    .trim();
+
+  // LIMIT LENGTH
+  if(smartTitle.length > 40){
+    smartTitle = smartTitle.substring(0, 40) + '...';
+  }
+
+  // FALLBACK
+  if(!smartTitle || smartTitle.length < 3){
+    smartTitle = 'Untitled Chat';
+  }
+
   currentChatId = 'chat_' + Date.now();
-  chats[currentChatId] = { title: firstMessage.length > 30 ? firstMessage.substring(0,30)+'...' : firstMessage, messages:[] };
-  saveChats(); renderHistory();
-}
+
+  chats[currentChatId] = {
+    title: smartTitle,
+    messages:[]
+  };
+
+  saveChats();
+  renderHistory();
+}}
 function saveMessage(role, content){
   if(!currentChatId) createChat(content);
   chats[currentChatId].messages.push({ role, content });
@@ -567,7 +589,16 @@ async function generateChatTitle(messages) {
         messages: [
           {
             role: 'system',
-            content: 'Generate a very short chat title (3-6 words max). No quotes.'
+            content: `
+Generate a short modern chat title.
+
+Rules:
+- 2 to 5 words
+- no quotes
+- no punctuation
+- summarize naturally
+- sound like ChatGPT titles
+`
           },
           ...messages.slice(0, 4)
         ],
@@ -733,9 +764,9 @@ function type(){
     saveMessage('assistant', reply);
 
     if(
-      chats[currentChatId] &&
-      chats[currentChatId].messages.length <= 2
-    ){
+  chats[currentChatId] &&
+  chats[currentChatId].messages.length === 2
+){
 
       generateChatTitle(
         chats[currentChatId].messages
