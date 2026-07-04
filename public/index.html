@@ -1071,8 +1071,6 @@ function quickPrompt(text) {
    SEND MESSAGE
 ========================= */
 let isBusy = false;
-const __b2=document.getElementById('sendBtn'); if(__b2){__b2.innerHTML='➤'; __b2.onclick=sendMessage;}
-let stopGeneration = false;
 
 async function sendMessage() {
   if (isBusy) return;
@@ -1113,8 +1111,6 @@ async function sendMessage() {
   messagesEl.scrollTop = messagesEl.scrollHeight;
 
   isBusy = true;
-stopGeneration=false;
-const __b=document.getElementById('sendBtn'); if(__b){__b.innerHTML='■'; __b.onclick=stopResponse;}
   document.getElementById('sendBtn').disabled = true;
 
   try {
