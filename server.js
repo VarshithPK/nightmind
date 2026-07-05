@@ -18,7 +18,7 @@ const __dirname = path.dirname(__filename);
 const upload = multer({ storage: multer.memoryStorage() });
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "15mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/", (req, res) => {
@@ -121,6 +121,17 @@ function needsSearch(message) {
   return keywords.some((k) => message.toLowerCase().includes(k));
 }
 
+// The frontend embeds attached-file text directly into the user message,
+// separated by this marker. Strip it out before running keyword detection
+// or building a search query — otherwise a code/PDF dump containing words
+// like "today" or "2025" triggers pointless searches, and the raw file
+// contents would get sent to Tavily as the "search query".
+function stripAttachments(message) {
+  const marker = "\n\nAttached Files:\n";
+  const idx = message.indexOf(marker);
+  return idx === -1 ? message : message.slice(0, idx);
+}
+
 // ======================================
 // CHAT ENDPOINT
 // ======================================
@@ -128,6 +139,7 @@ app.post("/chat", async (req, res) => {
   try {
     const messages = req.body.messages || [];
     const userMessage = messages[messages.length - 1]?.content || "";
+    const userQueryText = stripAttachments(userMessage);
 
     let systemContent = `
 You are NightMind, a futuristic AI assistant with real-time internet access.
@@ -136,8 +148,8 @@ NEVER say you don't have internet access or that your knowledge is limited.
 If live search data is provided, use it naturally and confidently.
 `;
 
-    if (needsSearch(userMessage)) {
-      const searchQuery = buildSearchQuery(userMessage);
+    if (needsSearch(userQueryText)) {
+      const searchQuery = buildSearchQuery(userQueryText);
       console.log("🔍 Search query:", searchQuery);
       const searchResults = await searchWeb(searchQuery);
 
