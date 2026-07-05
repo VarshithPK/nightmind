@@ -552,6 +552,77 @@ body.light .toggle-thumb { transform: translateX(20px); background: var(--red); 
   50%       { box-shadow: 0 0 0 6px rgba(239,35,60,0); }
 }
 
+/* ===== ATTACHMENTS (pre-send preview) ===== */
+#attachmentsPreview {
+  display: none;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+#attachmentsPreview.has-files { display: flex; }
+.file-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px 8px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  max-width: 220px;
+  animation: fadeUp .2s ease;
+}
+.file-chip.error { border-color: rgba(239,35,60,.5); }
+.file-chip-icon { font-size: 18px; flex-shrink: 0; }
+.file-chip-info { min-width: 0; overflow: hidden; }
+.file-chip-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.file-chip-meta { font-size: 10.5px; color: var(--muted); }
+.file-chip.error .file-chip-meta { color: var(--red); }
+.file-chip-remove {
+  border: none;
+  background: rgba(255,255,255,.06);
+  color: var(--muted);
+  width: 20px; height: 20px;
+  min-width: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .2s ease, color .2s ease;
+  flex-shrink: 0;
+}
+.file-chip-remove:hover { background: rgba(239,35,60,.2); color: var(--red); }
+
+/* Drag & drop highlight */
+.input-zone.dragover .input-wrap {
+  outline: 2px dashed rgba(239,35,60,.5);
+  outline-offset: 6px;
+  border-radius: 22px;
+}
+
+/* Attachments shown inside a sent message bubble */
+.msg-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.msg-file-chip {
+  font-size: 11.5px;
+  padding: 5px 10px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid var(--border2);
+  white-space: nowrap;
+}
+body.light .msg-file-chip { background: rgba(0,0,0,.05); }
+
 /* ===== TYPING INDICATOR ===== */
 .typing-wrap {
   background: var(--bg-msg-ai);
@@ -672,8 +743,9 @@ body.light .toggle-thumb { transform: translateX(20px); background: var(--red); 
       </div>
     </div>
 
-    <div class="input-zone">
+    <div class="input-zone" id="inputZone">
       <div class="input-wrap">
+        <div id="attachmentsPreview"></div>
         <textarea
           id="chat-input"
           class="chat-input"
@@ -681,8 +753,23 @@ body.light .toggle-thumb { transform: translateX(20px); background: var(--red); 
           onkeydown="handleEnter(event)"
         ></textarea>
         <div class="input-btns">
-          <button class="mic-btn" id="micBtn" onclick="toggleRecording()" title="Voice input">🎤</button>
-          <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Send">
+
+    <button class="mic-btn"
+            id="micBtn"
+            onclick="toggleRecording()"
+            title="Voice input">
+        🎤
+    </button>
+
+    <button class="mic-btn"
+            id="attachBtn"
+            title="Attach files">
+        📎
+    </button>
+
+    <button class="send-btn"
+            id="sendBtn"
+            onclick="sendMessage()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <line x1="22" y1="2" x2="11" y2="13"/>
               <polygon points="22 2 15 22 11 13 2 9 22 2"/>
@@ -693,6 +780,22 @@ body.light .toggle-thumb { transform: translateX(20px); background: var(--red); 
     </div>
   </div>
 </div>
+
+<input
+    type="file"
+    id="fileInput"
+    multiple
+    hidden
+/>
+
+<!-- ==============================
+     FILE-PARSING LIBRARIES (CDN)
+     Loaded synchronously so they're
+     ready before our script runs.
+============================== -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <!-- ==============================
      SCRIPT — no markdown fences
@@ -928,6 +1031,235 @@ function handleEnter(e) {
 }
 
 /* =========================
+   FILE ATTACHMENTS
+========================= */
+let attachedFiles = []; // { id, file, name, ext, size, status: 'reading'|'ready'|'error', content }
+
+const TEXT_EXTS = new Set([
+  'txt','js','jsx','ts','tsx','mjs','cjs','html','htm','css','scss','less',
+  'json','py','cpp','cc','c','h','hpp','java','kt','md','markdown','xml',
+  'csv','tsv','yml','yaml','sh','bash','rb','go','rs','php','sql','ini',
+  'conf','cfg','log','env','toml','vue','svelte','gitignore'
+]);
+const IMAGE_EXTS = new Set(['png','jpg','jpeg','gif','webp','bmp','svg']);
+const MAX_FILE_CHARS = 15000;
+
+// Make sure pdf.js knows where to find its worker
+if (window.pdfjsLib) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+function getExt(filename) {
+  const parts = filename.split('.');
+  return parts.length > 1 ? parts.pop().toLowerCase() : '';
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function fileIcon(ext) {
+  if (IMAGE_EXTS.has(ext)) return '🖼️';
+  if (ext === 'pdf') return '📕';
+  if (ext === 'docx' || ext === 'doc') return '📘';
+  if (ext === 'xlsx' || ext === 'xls') return '📊';
+  if (ext === 'zip' || ext === 'rar' || ext === '7z') return '🗜️';
+  if (['js','jsx','ts','tsx','py','java','cpp','c','html','css','json'].includes(ext)) return '💻';
+  return '📄';
+}
+
+function truncateContent(text) {
+  if (!text) return text;
+  if (text.length <= MAX_FILE_CHARS) return text;
+  return text.slice(0, MAX_FILE_CHARS) +
+    `\n...[truncated — showing first ${MAX_FILE_CHARS} characters]`;
+}
+
+async function extractPdfText(file) {
+  if (!window.pdfjsLib) return '[PDF support unavailable — library failed to load]';
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  let text = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.map(it => it.str).join(' ') + '\n';
+  }
+  return text.trim() || '[No extractable text found in this PDF]';
+}
+
+async function extractDocxText(file) {
+  if (!window.mammoth) return '[DOCX support unavailable — library failed to load]';
+  const buf = await file.arrayBuffer();
+  const result = await mammoth.extractRawText({ arrayBuffer: buf });
+  return (result.value || '').trim() || '[No extractable text found in this document]';
+}
+
+async function extractSheetText(file) {
+  if (!window.XLSX) return '[Spreadsheet support unavailable — library failed to load]';
+  const buf = await file.arrayBuffer();
+  const wb = XLSX.read(buf, { type: 'array' });
+  let out = '';
+  wb.SheetNames.forEach(name => {
+    const sheet = wb.Sheets[name];
+    out += `--- Sheet: ${name} ---\n${XLSX.utils.sheet_to_csv(sheet)}\n\n`;
+  });
+  return out.trim() || '[No data found in this spreadsheet]';
+}
+
+async function extractFileContent(file, ext) {
+  if (TEXT_EXTS.has(ext) || ext === '') {
+    try { return await file.text(); }
+    catch { return `[Could not read "${file.name}" as text]`; }
+  }
+  if (ext === 'pdf') return extractPdfText(file);
+  if (ext === 'docx') return extractDocxText(file);
+  if (ext === 'xlsx' || ext === 'xls') return extractSheetText(file);
+  if (IMAGE_EXTS.has(ext)) {
+    return `[Image file "${file.name}" attached — visual content not extracted as text]`;
+  }
+  // Unknown binary-ish type — best-effort text read, else flag it
+  try {
+    const text = await file.text();
+    if (/[\x00-\x08\x0E-\x1F]/.test(text.slice(0, 500))) {
+      return `[Could not extract readable text from "${file.name}" — unsupported file type]`;
+    }
+    return text;
+  } catch {
+    return `[Could not extract readable text from "${file.name}" — unsupported file type]`;
+  }
+}
+
+function renderAttachments() {
+  const wrap = document.getElementById('attachmentsPreview');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  wrap.classList.toggle('has-files', attachedFiles.length > 0);
+
+  attachedFiles.forEach(f => {
+    const chip = document.createElement('div');
+    chip.className = 'file-chip' + (f.status === 'error' ? ' error' : '');
+
+    const icon = document.createElement('span');
+    icon.className = 'file-chip-icon';
+    icon.textContent = fileIcon(f.ext);
+
+    const info = document.createElement('div');
+    info.className = 'file-chip-info';
+    const nameEl = document.createElement('div');
+    nameEl.className = 'file-chip-name';
+    nameEl.textContent = f.name;
+    const metaEl = document.createElement('div');
+    metaEl.className = 'file-chip-meta';
+    metaEl.textContent = f.status === 'reading' ? 'Reading…' :
+                          f.status === 'error'   ? 'Error reading file' :
+                          formatSize(f.size);
+    info.appendChild(nameEl);
+    info.appendChild(metaEl);
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'file-chip-remove';
+    removeBtn.textContent = '×';
+    removeBtn.title = 'Remove file';
+    removeBtn.onclick = () => removeAttachment(f.id);
+
+    chip.appendChild(icon);
+    chip.appendChild(info);
+    chip.appendChild(removeBtn);
+    wrap.appendChild(chip);
+  });
+}
+
+function removeAttachment(id) {
+  attachedFiles = attachedFiles.filter(f => f.id !== id);
+  renderAttachments();
+}
+
+function handleIncomingFiles(fileList) {
+  Array.from(fileList).forEach(file => {
+    const id = 'f_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+    const ext = getExt(file.name);
+    const entry = { id, file, name: file.name, ext, size: file.size, status: 'reading', content: '' };
+    attachedFiles.push(entry);
+    renderAttachments();
+
+    extractFileContent(file, ext)
+      .then(content => {
+        entry.content = truncateContent(content);
+        entry.status = 'ready';
+        renderAttachments();
+      })
+      .catch(err => {
+        console.error('File read error:', err);
+        entry.status = 'error';
+        entry.content = `[Error reading "${file.name}": ${err.message}]`;
+        renderAttachments();
+      });
+  });
+}
+
+// Render a saved/sent message, splitting out any embedded file block
+// into clean chips instead of dumping raw file text into the bubble.
+function renderMessageBody(div, content) {
+  const marker = '\n\nAttached Files:\n';
+  const idx = content.indexOf(marker);
+  if (idx === -1) {
+    div.textContent = content;
+    return;
+  }
+  const mainText  = content.slice(0, idx);
+  const filesPart = content.slice(idx + marker.length);
+  const fileNames = [...filesPart.matchAll(/-{5} (.+?) -{5}/g)].map(m => m[1]);
+
+  div.textContent = mainText || '(sent with attachment)';
+
+  if (fileNames.length) {
+    const row = document.createElement('div');
+    row.className = 'msg-attachments';
+    fileNames.forEach(name => {
+      const chip = document.createElement('span');
+      chip.className = 'msg-file-chip';
+      chip.textContent = '📄 ' + name;
+      row.appendChild(chip);
+    });
+    div.appendChild(row);
+  }
+}
+
+// Wire up attach button, hidden file input, and drag & drop
+const fileInputEl = document.getElementById('fileInput');
+const attachBtn   = document.getElementById('attachBtn');
+const inputZone   = document.getElementById('inputZone');
+
+attachBtn.onclick = () => fileInputEl.click();
+
+fileInputEl.addEventListener('change', () => {
+  handleIncomingFiles(fileInputEl.files);
+  fileInputEl.value = ''; // allow re-selecting the same file later
+});
+
+['dragenter', 'dragover'].forEach(evt => {
+  inputZone.addEventListener(evt, e => {
+    e.preventDefault();
+    inputZone.classList.add('dragover');
+  });
+});
+['dragleave', 'drop'].forEach(evt => {
+  inputZone.addEventListener(evt, e => {
+    e.preventDefault();
+    inputZone.classList.remove('dragover');
+  });
+});
+inputZone.addEventListener('drop', e => {
+  if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+    handleIncomingFiles(e.dataTransfer.files);
+  }
+});
+
+/* =========================
    THEME
 ========================= */
 let isLight = localStorage.getItem('nightmind_theme') === 'light';
@@ -1021,7 +1353,7 @@ function loadChat(chatId) {
   chats[chatId].messages.forEach(msg => {
     const div = document.createElement('div');
     div.className = msg.role === 'user' ? 'msg-user' : 'msg-ai';
-    div.textContent = msg.content;
+    renderMessageBody(div, msg.content);
     messagesEl.appendChild(div);
   });
 
@@ -1058,6 +1390,8 @@ function newChat() {
   closeSidebar();
   chatInput.value = '';
   chatInput.style.height = '56px';
+  attachedFiles = [];
+  renderAttachments();
 }
 
 /* FIX: quickPrompt was missing entirely */
@@ -1075,7 +1409,12 @@ let isBusy = false;
 async function sendMessage() {
   if (isBusy) return;
   const text = chatInput.value.trim();
-  if (!text) return;
+  if (!text && attachedFiles.length === 0) return;
+
+  if (attachedFiles.some(f => f.status === 'reading')) {
+    alert('Still reading attached files — one moment and try again.');
+    return;
+  }
 
   // Capture and clear voice flag before async gap
   const wasVoice = lastInputWasVoice;
@@ -1088,16 +1427,29 @@ async function sendMessage() {
   const welcome    = document.getElementById('welcome');
   if (welcome) welcome.remove();
 
+  // Fold any attached files into the message with clear boundaries
+  // so the AI receives full file context alongside the user's question.
+  let contentToSend = text;
+  if (attachedFiles.length > 0) {
+    const block = attachedFiles
+      .map(f => `----- ${f.name} -----\n${f.content}`)
+      .join('\n\n');
+    contentToSend = (text || 'Please review the attached file(s).') +
+      '\n\nAttached Files:\n' + block;
+  }
+  attachedFiles = [];
+  renderAttachments();
+
   // User bubble
   const userDiv = document.createElement('div');
   userDiv.className = 'msg-user';
-  userDiv.textContent = text;
+  renderMessageBody(userDiv, contentToSend);
   messagesEl.appendChild(userDiv);
   messagesEl.scrollTop = messagesEl.scrollHeight;
 
   // Ensure chat exists before saving
-  if (!currentChatId) createChat(text);
-  saveMessage('user', text);
+  if (!currentChatId) createChat(text || 'Attachment');
+  saveMessage('user', contentToSend);
 
   // Typing indicator
   const typing = document.createElement('div');
